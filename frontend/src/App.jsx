@@ -15,8 +15,8 @@ function ProductArtwork({ product, compact = false }) {
 }
 
 function ProductCard({ product, onOpen, onAdd, wished, onWish }) {
-  return <article className="product-card glass-card">
-    <div className="product-visual" role="button" tabIndex={0} onClick={() => onOpen(product)} onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && onOpen(product)} aria-label={'查看 '+product.title}>
+  return <article className="product-card glass-card" role="button" tabIndex={0} onClick={() => onOpen(product)} onKeyDown={e => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onOpen(product); } }} aria-label={'查看 '+product.title}>
+    <div className="product-visual">
       <ProductArtwork product={product}/>
       {product.badge && <span className="product-flag">{product.badge}</span>}
       <button className={'wish-button'+(wished?' wished':'')} onClick={e=>{e.stopPropagation();onWish(product.id)}} aria-label={wished?'取消收藏':'加入收藏'}><Heart size={17} fill={wished?'currentColor':'none'}/></button>
@@ -26,7 +26,7 @@ function ProductCard({ product, onOpen, onAdd, wished, onWish }) {
       <button className="product-title" onClick={()=>onOpen(product)}>{product.title}</button>
       <div className="product-subtitle">{product.subtitle}</div>
       <div className="product-rating"><Star size={12} fill="currentColor"/><b>{product.rating?.toFixed(1) || '5.0'}</b><span>({product.reviewCount || 0})</span></div>
-      <div className="product-bottom"><div><span className="product-price">NT$ {money(product.price)}</span>{product.originalPrice>product.price&&<del>NT$ {money(product.originalPrice)}</del>}</div><button className="add-button" onClick={()=>onAdd(product)} aria-label="加入購物袋"><Plus size={17}/></button></div>
+      <div className="product-bottom"><div><span className="product-price">NT$ {money(product.price)}</span>{product.originalPrice>product.price&&<del>NT$ {money(product.originalPrice)}</del>}</div><button className="add-button" onClick={e=>{e.stopPropagation();onAdd(product)}} aria-label="加入購物袋"><Plus size={17}/></button></div>
     </div>
   </article>;
 }
