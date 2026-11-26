@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Peach Girl Store API Bridge</title>
+</head>
+<body>
+  <script>
+    (function () {
+      'use strict';
+      var TRUSTED_ORIGIN = 'https://embassysubtle1g.github.io';
+
+      window.addEventListener('message', function (event) {
+        if (event.origin !== TRUSTED_ORIGIN) return;
+        var message = event.data;
+        if (!message || message.type !== 'PEACH_API_REQUEST' || typeof message.id !== 'string') return;
+
+        google.script.run
+          .withSuccessHandler(function (result) {
+            window.parent.postMessage({
+              type: 'PEACH_API_RESPONSE',
+              id: message.id,
+              result: result
+            }, TRUSTED_ORIGIN);
+          })
+          .withFailureHandler(function (error) {
+            window.parent.postMessage({
+              type: 'PEACH_API_RESPONSE',
+              id: message.id,
+              result: { success: false, message: error && error.message ? error.message : 'API 執行失敗' }
+            }, TRUSTED_ORIGIN);
+          })
+          .bridgeCall(message.payload);
+      });
+
+      window.parent.postMessage({ type: 'PEACH_BRIDGE_READY' }, TRUSTED_ORIGIN);
+    })();
+  </script>
+</body>
+</html>
