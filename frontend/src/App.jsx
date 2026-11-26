@@ -158,6 +158,10 @@ export default function App(){
         }).filter(Boolean);
         setCart(mergeCartItems(cart,remoteCart));
         setWishlist([...new Set([...wishlist,...(remote.wishlist||[]).map(String)])]);
+        // Guest data is merged once; clear its snapshot so later logins do not duplicate quantities.
+        localStorage.removeItem('peach-girl-guest-cart');
+        localStorage.removeItem('peach-girl-guest-wishlist');
+        localStorage.removeItem('peach-girl-wishlist');
         setCommerceReady(true);
       }catch(error){
         if(cancelled)return;
