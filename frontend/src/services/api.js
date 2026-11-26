@@ -1,12 +1,23 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
-const STOREFRONT_ORIGIN = 'https://embassysubtle1g.github.io';
 
 let bridgeFrame = null;
 let bridgeReadyPromise = null;
 let resolveBridgeReady = null;
 let rejectBridgeReady = null;
+let bridgeReadyTimer = null;
 let requestSequence = 0;
 const pendingRequests = new Map();
+
+function resetBridge(error) {
+  if (bridgeReadyTimer) window.clearTimeout(bridgeReadyTimer);
+  bridgeReadyTimer = null;
+  resolveBridgeReady = null;
+  rejectBridgeReady = null;
+  if (bridgeFrame?.parentNode) bridgeFrame.parentNode.removeChild(bridgeFrame);
+  bridgeFrame = null;
+  bridgeReadyPromise = null;
+  return error;
+}
 
 function ensureBridge() {
   if (!API_BASE_URL) {
@@ -15,19 +26,32 @@ function ensureBridge() {
   if (bridgeReadyPromise) return bridgeReadyPromise;
 
   bridgeReadyPromise = new Promise((resolve, reject) => {
-    resolveBridgeReady = resolve;
-    rejectBridgeReady = reject;
+    resolveBridgeReady = () => {
+      if (bridgeReadyTimer) window.clearTimeout(bridgeReadyTimer);
+      bridgeReadyTimer = null;
+      resolveBridgeReady = null;
+      rejectBridgeReady = null;
+      resolve();
+    };
+    rejectBridgeReady = error => reject(resetBridge(error));
 
     bridgeFrame = document.createElement('iframe');
     bridgeFrame.title = 'Peach Girl API connection';
     bridgeFrame.setAttribute('aria-hidden', 'true');
     bridgeFrame.tabIndex = -1;
     bridgeFrame.style.cssText = 'position:fixed;width:1px;height:1px;left:-10px;bottom:-10px;border:0;opacity:0;pointer-events:none;';
-    bridgeFrame.src = API_BASE_URL + (API_BASE_URL.includes('?') ? '&' : '?') + 'bridge=1';
+    bridgeFrame.onload = () => {
+      // HtmlService may redirect to googleusercontent.com. Give its bridge script
+      // a short window to announce readiness, then show a useful error instead
+      // of leaving the admin login button spinning forever.
+      bridgeReadyTimer = window.setTimeout(() => {
+        rejectBridgeReady?.(new Error('Apps Script 橋接頁沒有回應。請確認已部署最新版本，且存取權限設為「任何人」。'));
+      }, 10000);
+    };
     bridgeFrame.onerror = () => {
       rejectBridgeReady?.(new Error('無法載入商品管理 API，請確認 Apps Script 網頁應用程式已公開部署。'));
-      bridgeReadyPromise = null;
     };
+    bridgeFrame.src = API_BASE_URL + (API_BASE_URL.includes('?') ? '&' : '?') + 'bridge=1';
     document.body.appendChild(bridgeFrame);
   });
 
@@ -35,15 +59,21 @@ function ensureBridge() {
 }
 
 window.addEventListener('message', event => {
-  if (!bridgeFrame || event.source !== bridgeFrame.contentWindow) return;
+  if (!bridgeFrame) return;
+
+  // Apps Script HTML Service can deliver its content through a Google-hosted
+  // frame after redirecting. Accept only the expected Google origins.
+  const trustedGoogleOrigin =
+    event.origin === 'https://script.google.com' ||
+    event.origin === 'https://script.googleusercontent.com' ||
+    /^https:\/\/[^/]+\.googleusercontent\.com$/.test(event.origin);
+  if (event.source !== bridgeFrame.contentWindow && !trustedGoogleOrigin) return;
 
   const message = event.data;
   if (!message || typeof message !== 'object') return;
 
   if (message.type === 'PEACH_BRIDGE_READY') {
     resolveBridgeReady?.();
-    resolveBridgeReady = null;
-    rejectBridgeReady = null;
     return;
   }
 
@@ -67,8 +97,8 @@ export async function callApi(action, data = {}, token = null) {
   return new Promise((resolve, reject) => {
     const timeout = window.setTimeout(() => {
       pendingRequests.delete(id);
-      reject(new Error('API 回應逾時，請稍後再試。'));
-    }, 120000);
+      reject(new Error('Apps Script 沒有回覆 API 請求，請確認部署版本與存取權限。'));
+    }, 30000);
 
     pendingRequests.set(id, { resolve, reject, timeout });
     bridgeFrame.contentWindow.postMessage({
