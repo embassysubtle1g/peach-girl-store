@@ -1,5 +1,20 @@
 var PRODUCT_HEADERS = ['product_id','title','subtitle','category','category_name','price','original_price','description','status','image_url','in_stock','created_at','updated_at'];
 
+var STORE_SHEETS = {
+  Products: PRODUCT_HEADERS,
+  Categories: ['category_id','name','slug','description','sort_order','status','created_at','updated_at'],
+  ProductImages: ['image_id','product_id','file_id','image_url','alt_text','sort_order','is_primary','created_at'],
+  ProductVariants: ['variant_id','product_id','variant_name','option_name','option_value','price_adjustment','sku','status','created_at','updated_at'],
+  Inventory: ['inventory_id','product_id','variant_id','quantity','reserved_quantity','updated_at'],
+  Members: ['member_id','username','email','password_hash','password_salt','display_name','phone','status','created_at','updated_at','last_login_at'],
+  Orders: ['order_id','member_id','order_number','order_status','subtotal','discount_amount','shipping_fee','total_amount','recipient_name','recipient_phone','shipping_address','customer_note','created_at','updated_at'],
+  OrderItems: ['order_item_id','order_id','product_id','variant_id','product_title','variant_description','unit_price','quantity','line_total','created_at'],
+  Favorites: ['favorite_id','member_id','product_id','created_at'],
+  Payments: ['payment_id','order_id','payment_method','payment_status','amount','transaction_id','paid_at','created_at','updated_at'],
+  Shipments: ['shipment_id','order_id','carrier','tracking_number','shipping_status','shipped_at','delivered_at','created_at','updated_at'],
+  Admins: ['admin_id','username','display_name','role','status','created_at','updated_at','last_login_at']
+};
+
 function doGet() {
   return jsonResponse_({success:true,data:{service:'Peach Girl Store API',status:'ready'},message:'success'});
 }
@@ -25,9 +40,13 @@ function doPost(e) {
 function initializeStore() {
   var id=PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
   if(!id) throw new Error('請先設定指令碼屬性 SPREADSHEET_ID');
-  var ss=SpreadsheetApp.openById(id), sh=ss.getSheetByName('Products') || ss.insertSheet('Products');
-  if(sh.getLastRow()===0) sh.appendRow(PRODUCT_HEADERS);
-  Logger.log('Products 工作表已建立：'+ss.getUrl());
+  var ss=SpreadsheetApp.openById(id), created=[];
+  Object.keys(STORE_SHEETS).forEach(function(name) {
+    var sh=ss.getSheetByName(name);
+    if(!sh) { sh=ss.insertSheet(name); created.push(name); }
+    if(sh.getLastRow()===0) sh.getRange(1,1,1,STORE_SHEETS[name].length).setValues([STORE_SHEETS[name]]);
+  });
+  Logger.log('資料庫初始化完成。新建工作表：'+(created.join(', ')||'無')+'；資料庫：'+ss.getUrl());
 }
 /* 初次設定：先填入自己的帳號與至少 12 字元密碼，執行一次後立即刪除明文密碼。 */
 function setInitialAdmin() {
@@ -112,7 +131,7 @@ function uploadImage_(d) {
   if(allowed.indexOf(mime)<0) throw new Error('圖片僅支援 JPG、PNG、WebP');
   var base64=String(d.base64||'');
   if(!base64 || base64.length>5500000) throw new Error('圖片不可超過 4 MB');
-  var blob=Utilities.newBlob(Utilities.base64Decode(base64),mime,String(d.fileName||'product-image').replace(/[\\/:*?"<>|]/g,'_').slice(0,100));
+  var blob=Utilities.newBlob(Utilities.base64Decode(base64),mime,String(d.fileName||'product-image').replace(/[\\\\/:*?"<>|]/g,'_').slice(0,100));
   var file=DriveApp.getFolderById(folder).createFile(blob);
   file.setSharing(DriveApp.Access.ANYONE_WITH_LINK,DriveApp.Permission.VIEW);
   return {imageUrl:'https://drive.google.com/uc?export=view&id='+file.getId(),fileId:file.getId()};
