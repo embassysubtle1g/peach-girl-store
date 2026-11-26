@@ -12,7 +12,8 @@ var STORE_SHEETS = {
   Favorites: ['favorite_id','member_id','product_id','created_at'],
   Payments: ['payment_id','order_id','payment_method','payment_status','amount','transaction_id','paid_at','created_at','updated_at'],
   Shipments: ['shipment_id','order_id','carrier','tracking_number','shipping_status','shipped_at','delivered_at','created_at','updated_at'],
-  Admins: ['admin_id','username','display_name','role','status','created_at','updated_at','last_login_at']
+  Admins: ['admin_id','username','display_name','role','status','created_at','updated_at','last_login_at'],
+  MemberSessions: ['session_id','member_id','token_hash','expires_at','created_at']
 };
 
 function doGet(e) {
@@ -35,6 +36,10 @@ function bridgeCall(request) {
     switch (req.action) {
       case 'getProducts': result = readProducts_().filter(function(p){return p.status==='active';}).map(publicProduct_); break;
       case 'adminLogin': result = login_(d); break;
+      case 'memberRegister': result = registerMember_(d); break;
+      case 'memberLogin': result = loginMember_(d); break;
+      case 'memberGet': result = getMemberFromToken_(req.token); break;
+      case 'memberLogout': result = logoutMember_(req.token); break;
       case 'adminListProducts': requireAdmin_(req.token); result = readProducts_().map(publicProduct_); break;
       case 'saveProduct': requireAdmin_(req.token); result = saveProduct_(d); break;
       case 'setProductStatus': requireAdmin_(req.token); result = setStatus_(d); break;
@@ -54,6 +59,10 @@ function doPost(e) {
     switch (req.action) {
       case 'getProducts': result = readProducts_().filter(function(p){return p.status==='active';}).map(publicProduct_); break;
       case 'adminLogin': result = login_(d); break;
+      case 'memberRegister': result = registerMember_(d); break;
+      case 'memberLogin': result = loginMember_(d); break;
+      case 'memberGet': result = getMemberFromToken_(req.token); break;
+      case 'memberLogout': result = logoutMember_(req.token); break;
       case 'adminListProducts': requireAdmin_(req.token); result = readProducts_().map(publicProduct_); break;
       case 'saveProduct': requireAdmin_(req.token); result = saveProduct_(d); break;
       case 'setProductStatus': requireAdmin_(req.token); result = setStatus_(d); break;
@@ -95,6 +104,75 @@ function login_(d) {
   var token=Utilities.getUuid()+Utilities.getUuid();
   CacheService.getScriptCache().put('admin_'+hash_(token),'1',21600);
   return {token:token,expiresIn:21600};
+}
+function memberSheet_(name) {
+  var id=PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+  if(!id) throw new Error('請設定指令碼屬性 SPREADSHEET_ID');
+  var sh=SpreadsheetApp.openById(id).getSheetByName(name);
+  if(!sh) throw new Error('找不到 '+name+' 工作表，請先執行 initializeStore()');
+  return sh;
+}
+function registerMember_(d) {
+  var email=String(d.email||'').trim().toLowerCase();
+  var password=String(d.password||'');
+  var displayName=String(d.displayName||'').trim();
+  var phone=String(d.phone||'').trim();
+  if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) throw new Error('請輸入有效的電子郵件地址');
+  if(password.length<12) throw new Error('密碼至少需要 12 個字元');
+  if(displayName.length<1 || displayName.length>40) throw new Error('稱呼請輸入 1 至 40 個字元');
+  if(phone.length>30) throw new Error('電話格式不正確');
+  var lock=LockService.getScriptLock(); lock.waitLock(10000);
+  try {
+    var sh=memberSheet_('Members'), rows=sh.getDataRange().getValues();
+    for(var i=1;i<rows.length;i++) if(String(rows[i][2]||'').trim().toLowerCase()===email) throw new Error('這個電子郵件已經註冊，請直接登入');
+    var now=new Date(), id='MB-'+Utilities.getUuid().slice(0,8).toUpperCase(), salt=Utilities.getUuid();
+    sh.appendRow([id,email,email,passwordHash_(password,salt),salt,displayName,phone,'active',now,now,'']);
+    return createMemberSession_(id);
+  } finally { lock.releaseLock(); }
+}
+function loginMember_(d) {
+  var email=String(d.email||'').trim().toLowerCase(), password=String(d.password||'');
+  if(!email || !password) throw new Error('請輸入電子郵件與密碼');
+  var sh=memberSheet_('Members'), rows=sh.getDataRange().getValues();
+  for(var i=1;i<rows.length;i++) {
+    if(String(rows[i][2]||'').trim().toLowerCase()!==email) continue;
+    if(String(rows[i][7]||'')!=='active') throw new Error('此會員帳號目前無法使用');
+    if(passwordHash_(password,String(rows[i][4]||''))!==String(rows[i][3]||'')) { Utilities.sleep(400); throw new Error('電子郵件或密碼錯誤'); }
+    sh.getRange(i+1,10).setValue(new Date());
+    return createMemberSession_(String(rows[i][0]));
+  }
+  Utilities.sleep(400);
+  throw new Error('電子郵件或密碼錯誤');
+}
+function memberPublic_(row) {
+  return {id:String(row[0]),email:String(row[2]||''),displayName:String(row[5]||''),phone:String(row[6]||'')};
+}
+function createMemberSession_(memberId) {
+  var token=Utilities.getUuid()+Utilities.getUuid(), now=new Date();
+  var expires=new Date(now.getTime()+30*24*60*60*1000);
+  memberSheet_('MemberSessions').appendRow([Utilities.getUuid(),memberId,hash_(token),expires,now]);
+  var rows=memberSheet_('Members').getDataRange().getValues();
+  for(var i=1;i<rows.length;i++) if(String(rows[i][0])===memberId) return {token:token,expiresAt:expires.toISOString(),member:memberPublic_(rows[i])};
+  throw new Error('會員資料不存在');
+}
+function getMemberFromToken_(token) {
+  if(!token) throw new Error('請先登入會員');
+  var digest=hash_(String(token)), sessions=memberSheet_('MemberSessions'), rows=sessions.getDataRange().getValues(), now=new Date(), memberId='';
+  for(var i=1;i<rows.length;i++) {
+    if(String(rows[i][2])!==digest) continue;
+    if(new Date(rows[i][3]).getTime()<=now.getTime()) { sessions.deleteRow(i+1); throw new Error('登入已逾期，請重新登入'); }
+    memberId=String(rows[i][1]); break;
+  }
+  if(!memberId) throw new Error('登入已逾期，請重新登入');
+  var members=memberSheet_('Members').getDataRange().getValues();
+  for(var j=1;j<members.length;j++) if(String(members[j][0])===memberId && String(members[j][7])==='active') return memberPublic_(members[j]);
+  throw new Error('會員帳號目前無法使用');
+}
+function logoutMember_(token) {
+  if(!token) return {loggedOut:true};
+  var digest=hash_(String(token)), sh=memberSheet_('MemberSessions'), rows=sh.getDataRange().getValues();
+  for(var i=rows.length-1;i>=1;i--) if(String(rows[i][2])===digest) sh.deleteRow(i+1);
+  return {loggedOut:true};
 }
 function requireAdmin_(token) {
   if(!token || CacheService.getScriptCache().get('admin_'+hash_(token))!=='1') throw new Error('登入已逾時，請重新登入');
