@@ -25,14 +25,14 @@ function ProductArtwork({ product, compact = false }) {
 
 function ProductCard({ product, onOpen, onAdd, wished, onWish }) {
   return <article className="product-card">
-    <button className="product-visual" onClick={() => onOpen(product)} aria-label={'查看 ' + product.title}>
+    <div className="product-visual" role="button" tabIndex={0} onClick={() => onOpen(product)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onOpen(product); }} aria-label={'查看 ' + product.title}>
       <ProductArtwork product={product} />
       {product.badge && <span className="product-flag">{product.badge}</span>}
       <button className={'wish-button' + (wished ? ' wished' : '')} onClick={(e) => { e.stopPropagation(); onWish(product.id); }} aria-label={wished ? '取消收藏' : '加入收藏'}>
         <Heart size={17} fill={wished ? 'currentColor' : 'none'} />
       </button>
       <span className="quick-view">查看商品 <ArrowUpRight size={15} /></span>
-    </button>
+    </div>
     <div className="product-info">
       <div className="product-category">{product.categoryName}</div>
       <button className="product-title" onClick={() => onOpen(product)}>{product.title}</button>
