@@ -81,18 +81,45 @@ function CheckoutDialog({open,total,onClose,onDone}) {
   </section></div>;
 }
 
+function MemberDialog({open,onClose,onSubmit,loading,error}) {
+  const [mode,setMode]=useState('login');
+  const [email,setEmail]=useState('');
+  const [password,setPassword]=useState('');
+  const [confirm,setConfirm]=useState('');
+  const [displayName,setDisplayName]=useState('');
+  const [phone,setPhone]=useState('');
+  useEffect(()=>{if(open){setMode('login');setPassword('');setConfirm('')}},[open]);
+  if(!open)return null;
+  const submit=e=>{e.preventDefault();if(mode==='register'&&password!==confirm)return;onSubmit({mode,email,password,displayName,phone})};
+  return <div className="overlay" onMouseDown={onClose}><section className="member-dialog glass-sheet" onMouseDown={e=>e.stopPropagation()}>
+    <div className="dialog-head"><div><div className="eyebrow">PEACH GIRL MEMBER</div><strong>{mode==='login'?'會員登入':'建立會員帳號'}</strong></div><button className="icon-button" onClick={onClose} aria-label="關閉"><X size={17}/></button></div>
+    <div className="member-tabs"><button className={mode==='login'?'active':''} onClick={()=>setMode('login')}>登入</button><button className={mode==='register'?'active':''} onClick={()=>setMode('register')}>註冊</button></div>
+    <form className="member-form" onSubmit={submit}>
+      {mode==='register'&&<label>會員稱呼<input required maxLength={40} value={displayName} onChange={e=>setDisplayName(e.target.value)} placeholder="請輸入稱呼"/></label>}
+      <label>電子郵件<input required type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="name@example.com"/></label>
+      {mode==='register'&&<label>聯絡電話（選填）<input type="tel" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="請輸入聯絡電話"/></label>}
+      <label>密碼<input required type="password" minLength={mode==='register'?12:1} autoComplete={mode==='login'?'current-password':'new-password'} value={password} onChange={e=>setPassword(e.target.value)} placeholder={mode==='register'?'至少 12 個字元':'請輸入密碼'}/></label>
+      {mode==='register'&&<label>確認密碼<input required type="password" minLength={12} autoComplete="new-password" value={confirm} onChange={e=>setConfirm(e.target.value)} placeholder="再次輸入密碼"/></label>}
+      {mode==='register'&&<p className="member-hint">密碼至少 12 個字元。請使用不會與其他網站共用的密碼。</p>}
+      {mode==='register'&&confirm&&password!==confirm&&<p className="member-error">兩次輸入的密碼不一致。</p>}
+      {error&&<p className="member-error" role="alert">{error}</p>}
+      <button className="primary-button" type="submit" disabled={loading||(mode==='register'&&password!==confirm)}>{loading?'處理中…':mode==='login'?'登入會員':'建立會員帳號'} <ArrowUpRight size={16}/></button>
+    </form>
+  </section></div>;
+}
+
 export default function App(){
   const [products,setProducts]=useState([]),[productsLoading,setProductsLoading]=useState(true),[productsError,setProductsError]=useState('');
   const [category,setCategory]=useState('all'),[search,setSearch]=useState(''),[selected,setSelected]=useState(null),[cartOpen,setCartOpen]=useState(false),[cart,setCart]=useState([]),[sortBy,setSortBy]=useState('featured'),[onlyWishlist,setOnlyWishlist]=useState(false);
-  const [catalogVisible,setCatalogVisible]=useState(false);
+  const [catalogVisible,setCatalogVisible]=useState(false);\n  const [member,setMember]=useState(null),[memberToken,setMemberToken]=useState(()=>localStorage.getItem('peach-girl-member-token')||''),[memberOpen,setMemberOpen]=useState(false),[memberLoading,setMemberLoading]=useState(false),[memberError,setMemberError]=useState('');
   const [wishlist,setWishlist]=useState(()=>{try{return JSON.parse(localStorage.getItem('peach-girl-wishlist')||'[]')}catch{return[]}});
   const [dark,setDark]=useState(()=>localStorage.getItem('peach-girl-theme')==='dark'),[toast,setToast]=useState(''),[promoApplied,setPromoApplied]=useState(false),[checkoutOpen,setCheckoutOpen]=useState(false),[checkoutTotal,setCheckoutTotal]=useState(0);
-  useEffect(()=>{callApi('getProducts').then(items=>{if(Array.isArray(items)){setProducts(items);setProductsError('');}else{setProductsError('商品 API 回傳格式不正確，請檢查後端回應。');}}).catch(error=>{setProducts([]);setProductsError(error?.message||'商品載入失敗，請稍後再試。');}).finally(()=>setProductsLoading(false));},[]);
+  useEffect(()=>{if(!memberToken)return;callApi('memberGet',{},memberToken).then(setMember).catch(()=>{localStorage.removeItem('peach-girl-member-token');setMemberToken('');setMember(null)});},[memberToken]);\n  useEffect(()=>{callApi('getProducts').then(items=>{if(Array.isArray(items)){setProducts(items);setProductsError('');}else{setProductsError('商品 API 回傳格式不正確，請檢查後端回應。');}}).catch(error=>{setProducts([]);setProductsError(error?.message||'商品載入失敗，請稍後再試。');}).finally(()=>setProductsLoading(false));},[]);
   useEffect(()=>{document.documentElement.classList.toggle('dark',dark);localStorage.setItem('peach-girl-theme',dark?'dark':'light')},[dark]);
   useEffect(()=>localStorage.setItem('peach-girl-wishlist',JSON.stringify(wishlist)),[wishlist]);
   useEffect(()=>{const catalog=document.getElementById('catalog');if(!catalog)return;const updateVisibility=()=>{const rect=catalog.getBoundingClientRect();setCatalogVisible(rect.top<window.innerHeight&&rect.bottom>145)};updateVisibility();window.addEventListener('scroll',updateVisibility,{passive:true});window.addEventListener('resize',updateVisibility);return()=>{window.removeEventListener('scroll',updateVisibility);window.removeEventListener('resize',updateVisibility)}},[]);
   const filtered=useMemo(()=>{let list=products.filter(p=>(category==='all'||p.category===category)&&(!onlyWishlist||wishlist.includes(p.id))&&(p.title+p.subtitle+p.categoryName+p.description).toLowerCase().includes(search.trim().toLowerCase()));if(sortBy==='price-asc')list=[...list].sort((a,b)=>a.price-b.price);if(sortBy==='price-desc')list=[...list].sort((a,b)=>b.price-a.price);return list},[products,category,search,onlyWishlist,wishlist,sortBy]);
-  const notify=message=>{setToast(message);window.clearTimeout(window.__peachToastTimer);window.__peachToastTimer=window.setTimeout(()=>setToast(''),2400)};
+  const submitMember=async({mode,email,password,displayName,phone})=>{setMemberLoading(true);setMemberError('');try{const result=await callApi(mode==='register'?'memberRegister':'memberLogin',mode==='register'?{email,password,displayName,phone}:{email,password});localStorage.setItem('peach-girl-member-token',result.token);setMemberToken(result.token);setMember(result.member);setMemberOpen(false);notify(mode==='register'?'會員註冊成功':'登入成功');}catch(error){setMemberError(error?.message||'操作失敗，請稍後再試');}finally{setMemberLoading(false)}};\n  const logoutMember=async()=>{try{await callApi('memberLogout',{},memberToken)}catch{}localStorage.removeItem('peach-girl-member-token');setMemberToken('');setMember(null);notify('已登出會員帳號')};\n  const notify=message=>{setToast(message);window.clearTimeout(window.__peachToastTimer);window.__peachToastTimer=window.setTimeout(()=>setToast(''),2400)};
   const addToCart=(product,variants={})=>{if(!product.inStock){notify('這項商品目前缺貨');return}const variantText=Object.entries(variants).map(([i,v])=>product.variants?.[Number(i)]?.name+'：'+v).join(' / ');const key=product.id+'-'+variantText;setCart(items=>{const old=items.find(x=>x.key===key);return old?items.map(x=>x.key===key?{...x,quantity:x.quantity+1}:x):[...items,{...product,key,variantText,quantity:1}]});setCartOpen(true);notify('已加入購物袋')};
   const changeCart=(key,delta)=>setCart(items=>items.map(x=>x.key===key?{...x,quantity:x.quantity+delta}:x).filter(x=>x.quantity>0));
   const removeCart=key=>setCart(items=>items.filter(x=>x.key!==key));
@@ -109,7 +136,7 @@ export default function App(){
       <a className="wordmark" href="#top" onClick={resetFilters}><span className="brand-mark">p.</span><span>PEACH GIRL<small>HANDMADE SELECT SHOP</small></span></a>
       <nav className={'main-nav '+(catalogVisible?'category-visible':'category-hidden')} aria-hidden={!catalogVisible}>{categories.map(c=><button key={c.id} className={category===c.id&&!onlyWishlist?'nav-active':''} onClick={()=>{setCategory(c.id);setOnlyWishlist(false)}}>{c.label}</button>)}</nav>
       <div className="header-actions"><label className="header-search"><Search size={16}/><input placeholder="搜尋手作選物..." value={search} onChange={e=>setSearch(e.target.value)}/>{search&&<button onClick={()=>setSearch('')} aria-label="清除搜尋"><X size={13}/></button>}</label>
-        <button className="icon-button theme-button" onClick={()=>setDark(v=>!v)} aria-label="切換深淺色">{dark?<Sun size={18}/>:<Moon size={18}/>}</button>
+        {member?<button className="member-entry signed-in" onClick={logoutMember} title="點擊登出">{member.displayName} · 登出</button>:<button className="member-entry" onClick={()=>{setMemberError('');setMemberOpen(true)}}>會員登入</button>}\n        <button className="icon-button theme-button" onClick={()=>setDark(v=>!v)} aria-label="切換深淺色">{dark?<Sun size={18}/>:<Moon size={18}/>}</button>
         <button className="icon-button" onClick={()=>{setOnlyWishlist(v=>!v);document.getElementById('catalog')?.scrollIntoView({behavior:'smooth'})}} aria-label="我的收藏"><Heart size={18}/></button>
         <button className="bag-button" onClick={()=>setCartOpen(true)}><ShoppingBag size={17}/><span>購物袋</span><b>{count}</b></button></div>
       <nav className={'mobile-category-nav '+(catalogVisible?'category-visible':'category-hidden')} aria-hidden={!catalogVisible}>{categories.map(c=><button key={c.id} className={category===c.id&&!onlyWishlist?'active':''} onClick={()=>{setCategory(c.id);setOnlyWishlist(false)}}>{c.label}</button>)}</nav>
@@ -128,7 +155,7 @@ export default function App(){
       <section className="service-row"><div className="service-card glass-card"><span className="service-icon"><Package/></span><div><strong>用心包裝每份心意</strong><p>讓每件手作，都有值得期待的開箱時刻。</p></div></div><div className="service-card glass-card"><span className="service-icon"><ShieldCheck/></span><div><strong>細節與品質把關</strong><p>仔細挑選材料，慢慢完成每一份作品。</p></div></div><div className="service-card glass-card"><span className="service-icon"><Truck/></span><div><strong>滿 NT$3,000 享免運</strong><p>把喜歡的小物一次帶回家。</p></div></div></section>
     </main>
     <footer className="site-footer"><a className="wordmark" href="#top"><span className="brand-mark">p.</span><span>PEACH GIRL<small>HANDMADE SELECT SHOP</small></span></a><span>© 2026 PEACH GIRL · MADE WITH LOVE.</span><a href="#top">BACK TO TOP ↑</a></footer>
-    <ProductDialog product={selected} onClose={()=>setSelected(null)} onAdd={addToCart}/>
+    <MemberDialog open={memberOpen} onClose={()=>setMemberOpen(false)} onSubmit={submitMember} loading={memberLoading} error={memberError}/>\n    <ProductDialog product={selected} onClose={()=>setSelected(null)} onAdd={addToCart}/>
     <CartDrawer open={cartOpen} items={cart} onClose={()=>setCartOpen(false)} onChange={changeCart} onRemove={removeCart} onPromo={applyPromo} promoApplied={promoApplied} onCheckout={startCheckout}/>
     <CheckoutDialog open={checkoutOpen} total={checkoutTotal} onClose={()=>setCheckoutOpen(false)} onDone={()=>{setCheckoutOpen(false);setCart([]);setPromoApplied(false);notify('感謝體驗 Peach Girl')}}/>
     {toast&&<div className="dynamic-island"><span><Check size={13}/></span>{toast}</div>}
