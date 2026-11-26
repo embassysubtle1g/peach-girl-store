@@ -283,3 +283,68 @@ body{
  .card-bottom button{width:26px;height:26px}
  .site-footer{padding:22px 16px;grid-template-columns:1fr 1fr}
 }
+
+
+/* Readability and clearly framed product cards */
+.site-header{min-height:72px}
+.brand strong{font-size:14px}
+.brand small{font-size:10px}
+.desktop-nav{font-size:15px;gap:28px}
+.bag-button{font-size:14px;height:40px}
+.bag-button b{font-size:11px}
+.icon-button svg{width:21px;height:21px}
+.icon-button i{font-size:10px;min-width:17px;height:17px}
+.shop-section{padding-top:48px}
+.section-top h2{font-size:32px}
+.section-top h2 span{font-size:15px}
+.eyebrow{font-size:11px;letter-spacing:1.5px}
+.category-list button{font-size:14px}
+.count-label{font-size:11px}
+.product-grid{gap:28px 20px}
+.product-card{
+  padding:10px 10px 14px;
+  border:1px solid #e2e4e6;
+  border-radius:12px;
+  background:#fff;
+  box-shadow:0 2px 8px rgba(25,32,38,.035);
+  transition:border-color .2s,box-shadow .2s
+}
+.product-card:hover{
+  border-color:#cfd3d6;
+  box-shadow:0 5px 16px rgba(25,32,38,.07)
+}
+.card-visual{border-radius:7px}
+.product-artwork,.artwork-finished,.artwork-charm,.artwork-diy,.artwork-hardware{border-radius:7px}
+.artwork-index,.artwork-caption{font-size:10px}
+.card-badge{font-size:11px;padding:6px 9px}
+.card-copy{padding:13px 3px 0}
+.card-category{font-size:11px;margin-bottom:7px}
+.card-title{font-size:15px;line-height:1.6;min-height:0}
+.card-bottom{margin-top:12px}
+.card-bottom strong{font-size:15px}
+.card-bottom button{width:32px;height:32px}
+.site-footer>p{font-size:13px}
+.site-footer>span{font-size:10px}
+@media(max-width:650px){
+ .site-header{min-height:64px}
+ .brand strong{font-size:12px}
+ .brand small{font-size:9px}
+ .bag-button{font-size:12px}
+ .shop-section{padding:34px 14px 58px}
+ .section-top h2{font-size:27px}
+ .section-top h2 span{font-size:13px}
+ .category-list{gap:12px}
+ .category-list button{font-size:13px}
+ .count-label{font-size:10px}
+ .product-grid{gap:16px 10px}
+ .product-card{padding:7px 7px 11px;border-radius:10px}
+ .card-visual,.product-artwork,.artwork-finished,.artwork-charm,.artwork-diy,.artwork-hardware{border-radius:6px}
+ .artwork-index,.artwork-caption{font-size:9px}
+ .card-badge{font-size:10px}
+ .card-copy{padding:10px 2px 0}
+ .card-category{font-size:10px}
+ .card-title{font-size:14px;line-height:1.55}
+ .card-bottom{margin-top:9px}
+ .card-bottom strong{font-size:14px}
+ .card-bottom button{width:29px;height:29px}
+}
