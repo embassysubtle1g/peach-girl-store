@@ -145,6 +145,7 @@ export default function App(){
     let cancelled=false;
     if(!memberToken){setMember(null);setCommerceReady(true);return()=>{cancelled=true};}
     setCommerceReady(false);
+    if(productsLoading)return()=>{cancelled=true};
     (async()=>{
       try{
         const profile=await callApi('memberGet',{},memberToken);
@@ -168,7 +169,7 @@ export default function App(){
       }
     })();
     return()=>{cancelled=true};
-  },[memberToken]);
+  },[memberToken,productsLoading]);
   useEffect(()=>{callApi('getProducts').then(items=>{if(Array.isArray(items)){setProducts(items);setProductsError('');}else{setProductsError('商品 API 回傳格式不正確，請檢查後端回應。');}}).catch(error=>{setProducts([]);setProductsError(error?.message||'商品載入失敗，請稍後再試。');}).finally(()=>setProductsLoading(false));},[]);
   useEffect(()=>{document.documentElement.classList.toggle('dark',dark);localStorage.setItem('peach-girl-theme',dark?'dark':'light')},[dark]);
   useEffect(()=>{
