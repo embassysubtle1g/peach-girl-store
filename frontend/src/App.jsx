@@ -10,8 +10,7 @@ const PROMO_CODE = 'PEACH10';
 function ProductArtwork({ product, compact = false }) {
   const symbols = { 'pearl-bow':'✳','tulip-strap':'✿','camellia-wrist':'❀','moonstone-chain':'✧','amber-bear':'♡','charm-bear':'♧','charm-capybara':'☁','charm-bunny':'◌','charm-unicorn':'✦','diy-kit':'✂','diy-jar':'✿','diy-bag':'♡','hw-clasp':'⌁','hw-wire':'〰' };
   return <div className={'artwork artwork-' + product.category + (compact ? ' artwork-compact' : '')}>
-    <span className="artwork-orbit"/><span className="artwork-symbol">{symbols[product.svgType] || '✳'}</span>
-    <span className="artwork-caption">PEACH GIRL · HANDMADE</span><span className="artwork-number">{String(product.id).padStart(2,'0')}</span>
+    {product.imageUrl ? <img className="product-real-image" src={product.imageUrl} alt={product.title}/> : <><span className="artwork-orbit"/><span className="artwork-symbol">{symbols[product.svgType] || '✳'}</span><span className="artwork-caption">PEACH GIRL · HANDMADE</span><span className="artwork-number">{String(product.id).padStart(2,'0')}</span></>}
   </div>;
 }
 
