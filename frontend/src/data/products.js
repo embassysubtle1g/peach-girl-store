@@ -1,4 +1,4 @@
-export const products = {
+export const products = [{
         id: 1,
         category: 'finished',
         categoryName: '手工成品手機鍊',
@@ -441,5 +441,6 @@ export const categories = [
   { id: 'all', label: '全部商品' },
   { id: 'finished', label: '手工成品手機鍊' },
   { id: 'charm', label: '手作萌粒公仔' },
-  { id: 'material', label: 'DIY 材料' },
+  { id: 'diy', label: 'DIY 材料' },
+  { id: 'hardware', label: '手作五金配件' },
 ];
