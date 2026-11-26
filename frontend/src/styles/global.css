@@ -35,4 +35,4 @@
 .main-nav.category-visible{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0)}
 .mobile-category-nav{transition:opacity .24s ease,transform .24s ease,visibility .24s ease}
 .mobile-category-nav.category-hidden{opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-8px)}
-.mobile-category-nav.category-visible{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0)}
+.mobile-category-nav.category-visible{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0);z-index:1}
