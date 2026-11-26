@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, ShoppingBag, X, Plus, Minus, ArrowUpRight, Heart, Sun, Moon, SlidersHorizontal, Package, ShieldCheck, Sparkles, Check, Trash2, Tag, Truck, Star } from 'lucide-react';
 import { categories } from './data/products.js';
 import { callApi } from './services/api.js';
@@ -6,6 +6,30 @@ import { callApi } from './services/api.js';
 const money = n => new Intl.NumberFormat('zh-TW').format(Math.round(n));
 const SHIPPING_THRESHOLD = 3000;
 const PROMO_CODE = 'PEACH10';
+
+function readGuestCart() {
+  try { const value = JSON.parse(localStorage.getItem('peach-girl-guest-cart') || '[]'); return Array.isArray(value) ? value : []; }
+  catch { return []; }
+}
+
+function readGuestWishlist() {
+  try { const value = JSON.parse(localStorage.getItem('peach-girl-guest-wishlist') || localStorage.getItem('peach-girl-wishlist') || '[]'); return Array.isArray(value) ? value : []; }
+  catch { return []; }
+}
+
+function mergeCartItems(...groups) {
+  const merged = new Map();
+  groups.flat().forEach(item => {
+    if (!item?.id || !item?.quantity) return;
+    const variantText = item.variantText || '';
+    const key = String(item.id) + '-' + variantText;
+    const previous = merged.get(key);
+    merged.set(key, previous
+      ? { ...previous, ...item, key, quantity: Math.min(99, previous.quantity + item.quantity) }
+      : { ...item, key, variantText, quantity: Math.min(99, item.quantity) });
+  });
+  return [...merged.values()];
+}
 
 function ProductArtwork({ product, compact = false }) {
   const symbols = { 'pearl-bow':'✳','tulip-strap':'✿','camellia-wrist':'❀','moonstone-chain':'✧','amber-bear':'♡','charm-bear':'♧','charm-capybara':'☁','charm-bunny':'◌','charm-unicorn':'✦','diy-kit':'✂','diy-jar':'✿','diy-bag':'♡','hw-clasp':'⌁','hw-wire':'〰' };
@@ -110,24 +134,72 @@ function MemberDialog({open,onClose,onSubmit,loading,error}) {
 
 export default function App(){
   const [products,setProducts]=useState([]),[productsLoading,setProductsLoading]=useState(true),[productsError,setProductsError]=useState('');
-  const [category,setCategory]=useState('all'),[search,setSearch]=useState(''),[selected,setSelected]=useState(null),[cartOpen,setCartOpen]=useState(false),[cart,setCart]=useState([]),[sortBy,setSortBy]=useState('featured'),[onlyWishlist,setOnlyWishlist]=useState(false);
+  const [category,setCategory]=useState('all'),[search,setSearch]=useState(''),[selected,setSelected]=useState(null),[cartOpen,setCartOpen]=useState(false),[cart,setCart]=useState(readGuestCart),[sortBy,setSortBy]=useState('featured'),[onlyWishlist,setOnlyWishlist]=useState(false);
   const [catalogVisible,setCatalogVisible]=useState(false);
   const [member,setMember]=useState(null),[memberToken,setMemberToken]=useState(()=>localStorage.getItem('peach-girl-member-token')||''),[memberOpen,setMemberOpen]=useState(false),[memberLoading,setMemberLoading]=useState(false),[memberError,setMemberError]=useState('');
-  const [wishlist,setWishlist]=useState(()=>{try{return JSON.parse(localStorage.getItem('peach-girl-wishlist')||'[]')}catch{return[]}});
+  const [commerceReady,setCommerceReady]=useState(()=>!localStorage.getItem('peach-girl-member-token'));
+  const commerceSaveQueue=useRef(Promise.resolve());
+  const [wishlist,setWishlist]=useState(readGuestWishlist);
   const [dark,setDark]=useState(()=>localStorage.getItem('peach-girl-theme')==='dark'),[toast,setToast]=useState(''),[promoApplied,setPromoApplied]=useState(false),[checkoutOpen,setCheckoutOpen]=useState(false),[checkoutTotal,setCheckoutTotal]=useState(0);
-  useEffect(()=>{if(!memberToken)return;callApi('memberGet',{},memberToken).then(setMember).catch(()=>{localStorage.removeItem('peach-girl-member-token');setMemberToken('');setMember(null)});},[memberToken]);
+  useEffect(()=>{
+    let cancelled=false;
+    if(!memberToken){setMember(null);setCommerceReady(true);return()=>{cancelled=true};}
+    setCommerceReady(false);
+    (async()=>{
+      try{
+        const profile=await callApi('memberGet',{},memberToken);
+        const remote=await callApi('memberGetCommerce',{},memberToken);
+        if(cancelled)return;
+        setMember(profile);
+        const remoteCart=(remote.cart||[]).map(item=>{
+          const product=products.find(p=>String(p.id)===String(item.productId));
+          return product?{...product,key:String(product.id)+'-'+(item.variantText||''),variantText:item.variantText||'',quantity:Number(item.quantity)||1}:null;
+        }).filter(Boolean);
+        setCart(mergeCartItems(cart,remoteCart));
+        setWishlist([...new Set([...wishlist,...(remote.wishlist||[]).map(String)])]);
+        setCommerceReady(true);
+      }catch(error){
+        if(cancelled)return;
+        localStorage.removeItem('peach-girl-member-token');
+        setMemberToken('');
+        setMember(null);
+        setCommerceReady(true);
+        notify(error?.message||'會員資料載入失敗，請重新登入');
+      }
+    })();
+    return()=>{cancelled=true};
+  },[memberToken]);
   useEffect(()=>{callApi('getProducts').then(items=>{if(Array.isArray(items)){setProducts(items);setProductsError('');}else{setProductsError('商品 API 回傳格式不正確，請檢查後端回應。');}}).catch(error=>{setProducts([]);setProductsError(error?.message||'商品載入失敗，請稍後再試。');}).finally(()=>setProductsLoading(false));},[]);
   useEffect(()=>{document.documentElement.classList.toggle('dark',dark);localStorage.setItem('peach-girl-theme',dark?'dark':'light')},[dark]);
-  useEffect(()=>localStorage.setItem('peach-girl-wishlist',JSON.stringify(wishlist)),[wishlist]);
+  useEffect(()=>{
+    if(memberToken)return;
+    localStorage.setItem('peach-girl-guest-cart',JSON.stringify(cart));
+    localStorage.setItem('peach-girl-guest-wishlist',JSON.stringify(wishlist));
+    localStorage.setItem('peach-girl-wishlist',JSON.stringify(wishlist));
+  },[cart,wishlist,memberToken]);
+  useEffect(()=>{
+    if(!memberToken||!commerceReady)return;
+    const payload={
+      wishlist:wishlist.map(String),
+      cart:cart.map(item=>({productId:String(item.id),variantText:item.variantText||'',quantity:item.quantity}))
+    };
+    const timer=window.setTimeout(()=>{
+      commerceSaveQueue.current=commerceSaveQueue.current
+        .catch(()=>{})
+        .then(()=>callApi('memberSaveCommerce',payload,memberToken))
+        .catch(error=>notify(error?.message||'購物車與收藏同步失敗，請稍後再試'));
+    },500);
+    return()=>window.clearTimeout(timer);
+  },[cart,wishlist,memberToken,commerceReady]);
   useEffect(()=>{const catalog=document.getElementById('catalog');if(!catalog)return;const updateVisibility=()=>{const rect=catalog.getBoundingClientRect();setCatalogVisible(rect.top<window.innerHeight&&rect.bottom>145)};updateVisibility();window.addEventListener('scroll',updateVisibility,{passive:true});window.addEventListener('resize',updateVisibility);return()=>{window.removeEventListener('scroll',updateVisibility);window.removeEventListener('resize',updateVisibility)}},[]);
-  const filtered=useMemo(()=>{let list=products.filter(p=>(category==='all'||p.category===category)&&(!onlyWishlist||wishlist.includes(p.id))&&(p.title+p.subtitle+p.categoryName+p.description).toLowerCase().includes(search.trim().toLowerCase()));if(sortBy==='price-asc')list=[...list].sort((a,b)=>a.price-b.price);if(sortBy==='price-desc')list=[...list].sort((a,b)=>b.price-a.price);return list},[products,category,search,onlyWishlist,wishlist,sortBy]);
+  const filtered=useMemo(()=>{let list=products.filter(p=>(category==='all'||p.category===category)&&(!onlyWishlist||wishlist.map(String).includes(String(p.id)))&&(p.title+p.subtitle+p.categoryName+p.description).toLowerCase().includes(search.trim().toLowerCase()));if(sortBy==='price-asc')list=[...list].sort((a,b)=>a.price-b.price);if(sortBy==='price-desc')list=[...list].sort((a,b)=>b.price-a.price);return list},[products,category,search,onlyWishlist,wishlist,sortBy]);
   const submitMember=async({mode,email,password,displayName,phone})=>{setMemberLoading(true);setMemberError('');try{const result=await callApi(mode==='register'?'memberRegister':'memberLogin',mode==='register'?{email,password,displayName,phone}:{email,password});localStorage.setItem('peach-girl-member-token',result.token);setMemberToken(result.token);setMember(result.member);setMemberOpen(false);notify(mode==='register'?'會員註冊成功':'登入成功');}catch(error){setMemberError(error?.message||'操作失敗，請稍後再試');}finally{setMemberLoading(false)}};
-  const logoutMember=async()=>{try{await callApi('memberLogout',{},memberToken)}catch{}localStorage.removeItem('peach-girl-member-token');setMemberToken('');setMember(null);notify('已登出會員帳號')};
+  const logoutMember=async()=>{try{await commerceSaveQueue.current;await callApi('memberLogout',{},memberToken)}catch{}localStorage.removeItem('peach-girl-member-token');setMemberToken('');setMember(null);setCommerceReady(true);setCart(readGuestCart());setWishlist(readGuestWishlist());notify('已登出會員帳號')};
   const notify=message=>{setToast(message);window.clearTimeout(window.__peachToastTimer);window.__peachToastTimer=window.setTimeout(()=>setToast(''),2400)};
   const addToCart=(product,variants={})=>{if(!product.inStock){notify('這項商品目前缺貨');return}const variantText=Object.entries(variants).map(([i,v])=>product.variants?.[Number(i)]?.name+'：'+v).join(' / ');const key=product.id+'-'+variantText;setCart(items=>{const old=items.find(x=>x.key===key);return old?items.map(x=>x.key===key?{...x,quantity:x.quantity+1}:x):[...items,{...product,key,variantText,quantity:1}]});setCartOpen(true);notify('已加入購物袋')};
   const changeCart=(key,delta)=>setCart(items=>items.map(x=>x.key===key?{...x,quantity:x.quantity+delta}:x).filter(x=>x.quantity>0));
   const removeCart=key=>setCart(items=>items.filter(x=>x.key!==key));
-  const toggleWish=id=>setWishlist(items=>{const exists=items.includes(id);notify(exists?'已取消收藏':'已加入收藏');return exists?items.filter(x=>x!==id):[...items,id]});
+  const toggleWish=id=>setWishlist(items=>{const normalized=String(id);const exists=items.map(String).includes(normalized);notify(exists?'已取消收藏':'已加入收藏');return exists?items.filter(x=>String(x)!==normalized):[...items,normalized]});
   const resetFilters=()=>{setCategory('all');setSearch('');setSortBy('featured');setOnlyWishlist(false)};
   const subtotal=cart.reduce((s,x)=>s+x.price*x.quantity,0),discount=promoApplied?Math.round(subtotal*.1):0,shipping=subtotal===0||subtotal>=SHIPPING_THRESHOLD?0:80,total=subtotal-discount+shipping,count=cart.reduce((s,x)=>s+x.quantity,0);
   const hero=products[0],categoryTitle=onlyWishlist?'我的收藏清單':categories.find(c=>c.id===category)?.label||'全部精選設計';
@@ -155,7 +227,7 @@ export default function App(){
       </div>{hero&&<button className="hero-art" onClick={()=>setSelected(hero)} aria-label={'查看 '+hero.title}><ProductArtwork product={hero}/><span className="hero-product-chip"><span><strong>{hero.title}</strong><small>人氣手作 · NT$ {money(hero.price)}</small></span><ArrowUpRight size={19}/></span></button>}</section>
       <section className="catalog-section" id="catalog"><div className="catalog-heading"><div><div className="eyebrow">FIND YOUR LITTLE FAVORITE</div><h2>{categoryTitle}</h2><p>探索手作選物，收藏生活裡剛剛好的溫柔。</p></div><div className="catalog-tools"><button className={'wishlist-filter'+(onlyWishlist?' active':'')} onClick={()=>setOnlyWishlist(v=>!v)}><Heart size={15} fill={onlyWishlist?'currentColor':'none'}/> 我的收藏</button><label className="sort-select"><SlidersHorizontal size={14}/><select value={sortBy} onChange={e=>setSortBy(e.target.value)}><option value="featured">精選推薦</option><option value="price-asc">價格：由低到高</option><option value="price-desc">價格：由高到低</option></select></label></div></div>
         <div className="catalog-subbar"><span className="item-count">共 {filtered.length} 件作品</span></div>
-        {productsLoading?<div className="empty-state">正在載入商品...</div>:productsError?<div className="empty-state"><Package size={27}/><h3>商品載入失敗</h3><p>{productsError}</p></div>:filtered.length?<div className="product-grid">{filtered.map(p=><ProductCard key={p.id} product={p} onOpen={setSelected} onAdd={addToCart} wished={wishlist.includes(p.id)} onWish={toggleWish}/>)}</div>:<div className="empty-state"><Search size={27}/><h3>找不到相符的商品</h3><p>試試其他關鍵字，或重設篩選條件。</p><button className="secondary-button" onClick={resetFilters}>顯示全部商品</button></div>}
+        {productsLoading?<div className="empty-state">正在載入商品...</div>:productsError?<div className="empty-state"><Package size={27}/><h3>商品載入失敗</h3><p>{productsError}</p></div>:filtered.length?<div className="product-grid">{filtered.map(p=><ProductCard key={p.id} product={p} onOpen={setSelected} onAdd={addToCart} wished={wishlist.map(String).includes(String(p.id))} onWish={toggleWish}/>)}</div>:<div className="empty-state"><Search size={27}/><h3>找不到相符的商品</h3><p>試試其他關鍵字，或重設篩選條件。</p><button className="secondary-button" onClick={resetFilters}>顯示全部商品</button></div>}
       </section>
       <section className="service-row"><div className="service-card glass-card"><span className="service-icon"><Package/></span><div><strong>用心包裝每份心意</strong><p>讓每件手作，都有值得期待的開箱時刻。</p></div></div><div className="service-card glass-card"><span className="service-icon"><ShieldCheck/></span><div><strong>細節與品質把關</strong><p>仔細挑選材料，慢慢完成每一份作品。</p></div></div><div className="service-card glass-card"><span className="service-icon"><Truck/></span><div><strong>滿 NT$3,000 享免運</strong><p>把喜歡的小物一次帶回家。</p></div></div></section>
     </main>
