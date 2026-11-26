@@ -54,3 +54,7 @@
 
 /* Product detail dialog: use a clean solid-white surface. */
 .product-dialog{background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none;border:1px solid rgba(0,0,0,.06)}
+
+/* Shopping bag drawer: match the product dialog with a clean solid-white surface. */
+.cart-drawer{background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none;border-left:1px solid rgba(0,0,0,.06)}
+.cart-total{background:#fff}
