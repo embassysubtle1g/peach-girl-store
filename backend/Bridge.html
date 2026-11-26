@@ -18,14 +18,14 @@
 
         google.script.run
           .withSuccessHandler(function (result) {
-            window.parent.postMessage({
+            window.top.postMessage({
               type: 'PEACH_API_RESPONSE',
               id: message.id,
               result: result
             }, TRUSTED_ORIGIN);
           })
           .withFailureHandler(function (error) {
-            window.parent.postMessage({
+            window.top.postMessage({
               type: 'PEACH_API_RESPONSE',
               id: message.id,
               result: { success: false, message: error && error.message ? error.message : 'API 執行失敗' }
@@ -34,7 +34,7 @@
           .bridgeCall(message.payload);
       });
 
-      window.parent.postMessage({ type: 'PEACH_BRIDGE_READY' }, TRUSTED_ORIGIN);
+      window.top.postMessage({ type: 'PEACH_BRIDGE_READY' }, TRUSTED_ORIGIN);
     })();
   </script>
 </body>
