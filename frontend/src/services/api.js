@@ -1,7 +1,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 export async function callApi(action, data = {}, token = null) {
-  if (!API_BASE_URL) throw new Error('尚未設定 GAS API 網址（VITE_API_BASE_URL）');
+  if (!API_BASE_URL) throw new Error('尚未設定商品管理 API 網址（VITE_API_BASE_URL）');
   const response = await fetch(API_BASE_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
