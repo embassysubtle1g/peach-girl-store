@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Search, ShoppingBag, X, Plus, Minus, ArrowUpRight, Heart, Sun, Moon, SlidersHorizontal, Package, ShieldCheck, Sparkles, Check, Trash2, Tag, Truck, Star } from 'lucide-react';
-import { products as demoProducts, categories } from './data/products.js';
+import { categories } from './data/products.js';
 import { callApi } from './services/api.js';
 
 const money = n => new Intl.NumberFormat('zh-TW').format(Math.round(n));
@@ -82,12 +82,12 @@ function CheckoutDialog({open,total,onClose,onDone}) {
 }
 
 export default function App(){
-  const [products,setProducts]=useState(demoProducts);
+  const [products,setProducts]=useState([]),[productsLoading,setProductsLoading]=useState(true);
   const [category,setCategory]=useState('all'),[search,setSearch]=useState(''),[selected,setSelected]=useState(null),[cartOpen,setCartOpen]=useState(false),[cart,setCart]=useState([]),[sortBy,setSortBy]=useState('featured'),[onlyWishlist,setOnlyWishlist]=useState(false);
   const [catalogVisible,setCatalogVisible]=useState(false);
   const [wishlist,setWishlist]=useState(()=>{try{return JSON.parse(localStorage.getItem('peach-girl-wishlist')||'[]')}catch{return[]}});
   const [dark,setDark]=useState(()=>localStorage.getItem('peach-girl-theme')==='dark'),[toast,setToast]=useState(''),[promoApplied,setPromoApplied]=useState(false),[checkoutOpen,setCheckoutOpen]=useState(false),[checkoutTotal,setCheckoutTotal]=useState(0);
-  useEffect(()=>{callApi('getProducts').then(items=>{if(Array.isArray(items))setProducts(items);}).catch(()=>{});},[]);
+  useEffect(()=>{callApi('getProducts').then(items=>{if(Array.isArray(items))setProducts(items);}).catch(()=>setProducts([])).finally(()=>setProductsLoading(false));},[]);
   useEffect(()=>{document.documentElement.classList.toggle('dark',dark);localStorage.setItem('peach-girl-theme',dark?'dark':'light')},[dark]);
   useEffect(()=>localStorage.setItem('peach-girl-wishlist',JSON.stringify(wishlist)),[wishlist]);
   useEffect(()=>{const catalog=document.getElementById('catalog');if(!catalog)return;const updateVisibility=()=>{const rect=catalog.getBoundingClientRect();setCatalogVisible(rect.top<window.innerHeight&&rect.bottom>145)};updateVisibility();window.addEventListener('scroll',updateVisibility,{passive:true});window.addEventListener('resize',updateVisibility);return()=>{window.removeEventListener('scroll',updateVisibility);window.removeEventListener('resize',updateVisibility)}},[]);
@@ -120,10 +120,10 @@ export default function App(){
         <p>從一顆珠子、一條手機鍊，到親手完成的小作品。<br/>讓每一份細節，都成為生活裡剛剛好的溫柔。</p>
         <div className="hero-pills"><span>手作手機鍊</span><span>可愛萌粒</span><span>DIY 串珠材料</span></div>
         <div className="hero-actions"><a className="primary-button" href="#catalog">探索手作選物 <ArrowUpRight size={17}/></a><button className="secondary-button" onClick={()=>{setCategory('finished');setOnlyWishlist(false);document.getElementById('catalog')?.scrollIntoView({behavior:'smooth'})}}>人氣手機鍊</button></div>
-      </div><button className="hero-art" onClick={()=>setSelected(hero)} aria-label={'查看 '+hero.title}><ProductArtwork product={hero}/><span className="hero-product-chip"><span><strong>{hero.title}</strong><small>人氣手作 · NT$ {money(hero.price)}</small></span><ArrowUpRight size={19}/></span></button></section>
+      </div>{hero&&<button className="hero-art" onClick={()=>setSelected(hero)} aria-label={'查看 '+hero.title}><ProductArtwork product={hero}/><span className="hero-product-chip"><span><strong>{hero.title}</strong><small>人氣手作 · NT$ {money(hero.price)}</small></span><ArrowUpRight size={19}/></span></button>}</section>
       <section className="catalog-section" id="catalog"><div className="catalog-heading"><div><div className="eyebrow">FIND YOUR LITTLE FAVORITE</div><h2>{categoryTitle}</h2><p>探索手作選物，收藏生活裡剛剛好的溫柔。</p></div><div className="catalog-tools"><button className={'wishlist-filter'+(onlyWishlist?' active':'')} onClick={()=>setOnlyWishlist(v=>!v)}><Heart size={15} fill={onlyWishlist?'currentColor':'none'}/> 我的收藏</button><label className="sort-select"><SlidersHorizontal size={14}/><select value={sortBy} onChange={e=>setSortBy(e.target.value)}><option value="featured">精選推薦</option><option value="price-asc">價格：由低到高</option><option value="price-desc">價格：由高到低</option></select></label></div></div>
         <div className="catalog-subbar"><span className="item-count">共 {filtered.length} 件作品</span></div>
-        {filtered.length?<div className="product-grid">{filtered.map(p=><ProductCard key={p.id} product={p} onOpen={setSelected} onAdd={addToCart} wished={wishlist.includes(p.id)} onWish={toggleWish}/>)}</div>:<div className="empty-state"><Search size={27}/><h3>找不到相符的商品</h3><p>試試其他關鍵字，或重設篩選條件。</p><button className="secondary-button" onClick={resetFilters}>顯示全部商品</button></div>}
+        {productsLoading?<div className="empty-state">正在載入商品...</div>:filtered.length?<div className="product-grid">{filtered.map(p=><ProductCard key={p.id} product={p} onOpen={setSelected} onAdd={addToCart} wished={wishlist.includes(p.id)} onWish={toggleWish}/>)}</div>:<div className="empty-state"><Search size={27}/><h3>找不到相符的商品</h3><p>試試其他關鍵字，或重設篩選條件。</p><button className="secondary-button" onClick={resetFilters}>顯示全部商品</button></div>}
       </section>
       <section className="service-row"><div className="service-card glass-card"><span className="service-icon"><Package/></span><div><strong>用心包裝每份心意</strong><p>讓每件手作，都有值得期待的開箱時刻。</p></div></div><div className="service-card glass-card"><span className="service-icon"><ShieldCheck/></span><div><strong>細節與品質把關</strong><p>仔細挑選材料，慢慢完成每一份作品。</p></div></div><div className="service-card glass-card"><span className="service-icon"><Truck/></span><div><strong>滿 NT$3,000 享免運</strong><p>把喜歡的小物一次帶回家。</p></div></div></section>
     </main>
