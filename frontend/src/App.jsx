@@ -83,11 +83,13 @@ function CheckoutDialog({open,total,onClose,onDone}) {
 }
 
 export default function App(){
+  const [products,setProducts]=useState(demoProducts);
   const [category,setCategory]=useState('all'),[search,setSearch]=useState(''),[selected,setSelected]=useState(null),[cartOpen,setCartOpen]=useState(false),[cart,setCart]=useState([]),[sortBy,setSortBy]=useState('featured'),[onlyWishlist,setOnlyWishlist]=useState(false);
   const [catalogVisible,setCatalogVisible]=useState(false);
   const [wishlist,setWishlist]=useState(()=>{try{return JSON.parse(localStorage.getItem('peach-girl-wishlist')||'[]')}catch{return[]}});
   const [dark,setDark]=useState(()=>localStorage.getItem('peach-girl-theme')==='dark'),[toast,setToast]=useState(''),[promoApplied,setPromoApplied]=useState(false),[checkoutOpen,setCheckoutOpen]=useState(false),[checkoutTotal,setCheckoutTotal]=useState(0);
-  useEffect(()=>{callApi('getProducts').then(items=>{if(Array.isArray(items))setProducts(items);}).catch(()=>{});},[]);\n  useEffect(()=>{document.documentElement.classList.toggle('dark',dark);localStorage.setItem('peach-girl-theme',dark?'dark':'light')},[dark]);
+  useEffect(()=>{callApi('getProducts').then(items=>{if(Array.isArray(items))setProducts(items);}).catch(()=>{});},[]);
+  useEffect(()=>{document.documentElement.classList.toggle('dark',dark);localStorage.setItem('peach-girl-theme',dark?'dark':'light')},[dark]);
   useEffect(()=>localStorage.setItem('peach-girl-wishlist',JSON.stringify(wishlist)),[wishlist]);
   useEffect(()=>{const catalog=document.getElementById('catalog');if(!catalog)return;const updateVisibility=()=>{const rect=catalog.getBoundingClientRect();setCatalogVisible(rect.top<window.innerHeight&&rect.bottom>145)};updateVisibility();window.addEventListener('scroll',updateVisibility,{passive:true});window.addEventListener('resize',updateVisibility);return()=>{window.removeEventListener('scroll',updateVisibility);window.removeEventListener('resize',updateVisibility)}},[]);
   const filtered=useMemo(()=>{let list=products.filter(p=>(category==='all'||p.category===category)&&(!onlyWishlist||wishlist.includes(p.id))&&(p.title+p.subtitle+p.categoryName+p.description).toLowerCase().includes(search.trim().toLowerCase()));if(sortBy==='price-asc')list=[...list].sort((a,b)=>a.price-b.price);if(sortBy==='price-desc')list=[...list].sort((a,b)=>b.price-a.price);return list},[category,search,onlyWishlist,wishlist,sortBy]);
