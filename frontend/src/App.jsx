@@ -158,7 +158,10 @@ export default function App(){
         }).filter(Boolean);
         setCart(mergeCartItems(cart,remoteCart));
         setWishlist([...new Set([...wishlist,...(remote.wishlist||[]).map(String)])]);
-        // Guest data is merged once; clear its snapshot so later logins do not duplicate quantities.
+        // Keep a separate guest backup so logging out restores the visitor's original cart and favorites.
+        localStorage.setItem('peach-girl-guest-backup-cart', JSON.stringify(readGuestCart()));
+        localStorage.setItem('peach-girl-guest-backup-wishlist', JSON.stringify(readGuestWishlist()));
+        // Clear the active guest snapshot so it is not merged again on a later login.
         localStorage.removeItem('peach-girl-guest-cart');
         localStorage.removeItem('peach-girl-guest-wishlist');
         localStorage.removeItem('peach-girl-wishlist');
@@ -199,7 +202,7 @@ export default function App(){
   useEffect(()=>{const catalog=document.getElementById('catalog');if(!catalog)return;const updateVisibility=()=>{const rect=catalog.getBoundingClientRect();setCatalogVisible(rect.top<window.innerHeight&&rect.bottom>145)};updateVisibility();window.addEventListener('scroll',updateVisibility,{passive:true});window.addEventListener('resize',updateVisibility);return()=>{window.removeEventListener('scroll',updateVisibility);window.removeEventListener('resize',updateVisibility)}},[]);
   const filtered=useMemo(()=>{let list=products.filter(p=>(category==='all'||p.category===category)&&(!onlyWishlist||wishlist.map(String).includes(String(p.id)))&&(p.title+p.subtitle+p.categoryName+p.description).toLowerCase().includes(search.trim().toLowerCase()));if(sortBy==='price-asc')list=[...list].sort((a,b)=>a.price-b.price);if(sortBy==='price-desc')list=[...list].sort((a,b)=>b.price-a.price);return list},[products,category,search,onlyWishlist,wishlist,sortBy]);
   const submitMember=async({mode,email,password,displayName,phone})=>{setMemberLoading(true);setMemberError('');try{const result=await callApi(mode==='register'?'memberRegister':'memberLogin',mode==='register'?{email,password,displayName,phone}:{email,password});setCommerceReady(false);localStorage.setItem('peach-girl-member-token',result.token);setMemberToken(result.token);setMember(result.member);setMemberOpen(false);notify(mode==='register'?'會員註冊成功':'登入成功');}catch(error){setMemberError(error?.message||'操作失敗，請稍後再試');}finally{setMemberLoading(false)}};
-  const logoutMember=async()=>{try{await commerceSaveQueue.current;await callApi('memberLogout',{},memberToken)}catch{}localStorage.removeItem('peach-girl-member-token');setMemberToken('');setMember(null);setCommerceReady(true);setCart(readGuestCart());setWishlist(readGuestWishlist());notify('已登出會員帳號')};
+  const logoutMember=async()=>{try{await commerceSaveQueue.current;await callApi('memberLogout',{},memberToken)}catch{}localStorage.removeItem('peach-girl-member-token');setMemberToken('');setMember(null);setCommerceReady(true);const guestCart=JSON.parse(localStorage.getItem('peach-girl-guest-backup-cart')||'[]');const guestWishlist=JSON.parse(localStorage.getItem('peach-girl-guest-backup-wishlist')||'[]');localStorage.removeItem('peach-girl-guest-backup-cart');localStorage.removeItem('peach-girl-guest-backup-wishlist');setCart(Array.isArray(guestCart)?guestCart:[]);setWishlist(Array.isArray(guestWishlist)?guestWishlist:[]);notify('已登出會員帳號')};
   const notify=message=>{setToast(message);window.clearTimeout(window.__peachToastTimer);window.__peachToastTimer=window.setTimeout(()=>setToast(''),2400)};
   const addToCart=(product,variants={})=>{if(!product.inStock){notify('這項商品目前缺貨');return}const variantText=Object.entries(variants).map(([i,v])=>product.variants?.[Number(i)]?.name+'：'+v).join(' / ');const key=product.id+'-'+variantText;setCart(items=>{const old=items.find(x=>x.key===key);return old?items.map(x=>x.key===key?{...x,quantity:x.quantity+1}:x):[...items,{...product,key,variantText,quantity:1}]});setCartOpen(true);notify('已加入購物袋')};
   const changeCart=(key,delta)=>setCart(items=>items.map(x=>x.key===key?{...x,quantity:x.quantity+delta}:x).filter(x=>x.quantity>0));
