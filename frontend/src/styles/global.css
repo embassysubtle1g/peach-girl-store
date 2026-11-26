@@ -28,3 +28,79 @@
 .product-card:hover{border-color:rgba(197,164,126,.55)}.product-flag{color:#A6845E}.wish-button.wished{color:#A6845E}.add-button{color:#A6845E;border-color:#E8E0D6}.add-button:hover{background:#F3EFEA;border-color:#C5A47E}
 .category-pills button:hover,.category-pills button.active{background:#C5A47E;border-color:#C5A47E}.service-icon{background:rgba(197,164,126,.14);color:#A6845E}.progress-track span{background:#C5A47E}.toast span{background:#A6845E}
 .dark .primary-button{background:#C5A47E;color:#2C2A29}.dark .primary-button:hover{background:#DFC7A7}.dark .hero h1 em{color:#DFC7A7}.dark .product-card:hover{border-color:rgba(197,164,126,.5)}
+
+/* AURA Store original palette — keep the template's Apple-like neutral + blue identity */
+:root{color:#1D1D1F;background:#F5F5F7;--ink:#1D1D1F;--muted:#86868B;--line:rgba(29,29,31,.09);--pink:#0071E3;--rose:#0071E3;--glass:rgba(255,255,255,.72);--shadow:0 10px 40px -10px rgba(0,0,0,.06),0 1px 3px rgba(0,0,0,.03)}
+.app-shell{background:#F5F5F7;color:#1D1D1F}
+.ambient-one{background:radial-gradient(circle,#7DD3FC 0,#BFDBFE 34%,transparent 70%);opacity:.42}
+.ambient-two{background:radial-gradient(circle,#C4B5FD 0,#E9D5FF 36%,#FBCFE8 58%,transparent 75%);opacity:.42}
+.ambient-three{background:radial-gradient(circle,#99F6E4 0,#A5F3FC 38%,transparent 72%);opacity:.42}
+.announcement{background:rgba(255,255,255,.78);color:#86868B}
+.announcement svg{color:#0071E3}
+.site-header{background:rgba(255,255,255,.72);border-bottom-color:rgba(255,255,255,.6)}
+.brand-mark{background:#1D1D1F;color:#fff;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.wordmark small{color:#86868B}
+.hero-tag{background:rgba(0,113,227,.08);color:#0071E3}
+.hero-tag span{background:#0071E3;box-shadow:0 0 0 4px rgba(0,113,227,.12)}
+.hero h1 em{color:#0071E3}
+.hero-pills span{background:rgba(29,29,31,.045);color:#68686D}
+.primary-button{background:#0071E3;color:#fff;box-shadow:0 6px 18px rgba(0,113,227,.18)}
+.primary-button:hover{background:#0066CC}
+.secondary-button{border-color:rgba(29,29,31,.12);color:#1D1D1F}
+.header-search{background:rgba(0,0,0,.04)}
+.bag-button{background:#1D1D1F;color:#fff}
+.bag-button b{background:#0071E3;color:#fff}
+.catalog-heading h2,.product-title,.product-price{color:#1D1D1F}
+.eyebrow,.product-category{color:#86868B}
+.wishlist-filter.active{color:#0071E3;border-color:rgba(0,113,227,.25);background:rgba(0,113,227,.07)}
+.category-pills button:hover,.category-pills button.active{background:#0071E3;border-color:#0071E3;color:#fff}
+.product-card{background:rgba(255,255,255,.82);border-color:rgba(29,29,31,.09);box-shadow:0 10px 30px -12px rgba(0,0,0,.07)}
+.product-card:hover{border-color:rgba(0,113,227,.3);box-shadow:0 22px 48px -12px rgba(0,0,0,.12),0 4px 12px rgba(0,0,0,.04)}
+.product-visual,.artwork{background:#F5F5F7}
+.artwork-finished,.artwork-charm,.artwork-diy,.artwork-hardware{background:radial-gradient(circle at 50% 42%,#fff 0,#F5F5F7 75%)}
+.artwork-orbit{border-color:rgba(0,113,227,.18)}
+.artwork-symbol{color:#0071E3;text-shadow:0 7px 15px rgba(0,113,227,.12)}
+.artwork-caption,.artwork-number{color:#86868B}
+.product-flag{color:#0071E3}
+.wish-button.wished{color:#0071E3}
+.add-button{color:#0071E3;border-color:rgba(0,113,227,.2)}
+.add-button:hover{background:rgba(0,113,227,.07);border-color:#0071E3}
+.service-icon{background:rgba(0,113,227,.08);color:#0071E3}
+.progress-track span{background:#0071E3}
+.variant.active{border-color:#0071E3;background:rgba(0,113,227,.07);color:#005BB5}
+.toast span{background:#0071E3}
+.site-footer{border-color:rgba(29,29,31,.09)}
+.dark .app-shell{background:#09090B;color:#F5F5F7}
+.dark .announcement{background:rgba(24,24,28,.72);color:#86868B}
+.dark .announcement svg{color:#2997FF}
+.dark .site-header{background:rgba(24,24,28,.72);border-color:rgba(255,255,255,.09)}
+.dark .brand-mark{background:#fff;color:#1D1D1F}
+.dark .wordmark,.dark .catalog-heading h2,.dark .product-title,.dark .product-price{color:#F5F5F7}
+.dark .wordmark small,.dark .eyebrow,.dark .product-category{color:#86868B}
+.dark .hero h1{color:#F5F5F7}
+.dark .hero h1 em{color:#2997FF}
+.dark .hero-tag{background:rgba(41,151,255,.12);color:#2997FF}
+.dark .hero-tag span{background:#2997FF;box-shadow:0 0 0 4px rgba(41,151,255,.12)}
+.dark .hero-pills span{background:rgba(255,255,255,.07);color:#B8B8BD}
+.dark .primary-button{background:#0071E3;color:#fff}
+.dark .primary-button:hover{background:#2997FF}
+.dark .secondary-button{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12);color:#F5F5F7}
+.dark .header-search{background:rgba(255,255,255,.08)}
+.dark .bag-button{background:#F5F5F7;color:#1D1D1F}
+.dark .bag-button b{background:#2997FF;color:#09090B}
+.dark .product-card{background:rgba(30,30,35,.65);border-color:rgba(255,255,255,.09);box-shadow:0 12px 40px -10px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08)}
+.dark .product-card:hover{background:rgba(38,38,44,.8);border-color:rgba(255,255,255,.16);box-shadow:0 24px 52px -12px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.14)}
+.dark .product-visual,.dark .artwork,.dark .artwork-finished,.dark .artwork-charm,.dark .artwork-diy,.dark .artwork-hardware{background:radial-gradient(circle at 50% 42%,#25252B 0,#17171B 75%)}
+.dark .artwork-orbit{border-color:rgba(41,151,255,.25)}
+.dark .artwork-symbol{color:#2997FF}
+.dark .artwork-caption,.dark .artwork-number{color:#86868B}
+.dark .wish-button,.dark .add-button{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.12);color:#2997FF}
+.dark .wish-button.wished{color:#2997FF}
+.dark .service-icon{background:rgba(41,151,255,.12);color:#2997FF}
+.dark .wishlist-filter.active{color:#2997FF;border-color:rgba(41,151,255,.3);background:rgba(41,151,255,.1)}
+.dark .category-pills button:hover,.dark .category-pills button.active{background:#0071E3;border-color:#0071E3;color:#fff}
+.dark .variant.active{background:rgba(41,151,255,.13);border-color:#2997FF;color:#2997FF}
+.dark .progress-track{background:rgba(255,255,255,.12)}
+.dark .progress-track span{background:#2997FF}
+.dark .toast span{background:#2997FF}
+.dark .site-footer{border-color:rgba(255,255,255,.09)}
