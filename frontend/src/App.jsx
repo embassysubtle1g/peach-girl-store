@@ -1,133 +1,125 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Search, ShoppingBag, Heart, X, Plus, Minus, ArrowUpRight, SlidersHorizontal, Star, Check, Trash2, Menu } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Search, ShoppingBag, X, Plus, Minus, ArrowUpRight, Heart, SlidersHorizontal } from 'lucide-react';
 import { products, categories } from './data/products.js';
 
 const money = (n) => new Intl.NumberFormat('zh-TW').format(n);
-const readStore = (key, fallback) => {
-  try { const value = JSON.parse(localStorage.getItem(key)); return value ?? fallback; } catch { return fallback; }
-};
 
-function ProductArtwork({ product, large = false }) {
-  const symbols = { finished: '✳', charm: '♡', diy: '✷', hardware: '⌁' };
-  return <div className={`product-artwork artwork-${product.category} ${large ? 'artwork-large' : ''}`}>
-    <span className="artwork-index">PG / {String(product.id).padStart(2, '0')}</span>
-    <span className="artwork-symbol">{symbols[product.category] || '✳'}</span>
-    <span className="artwork-caption">{product.categoryName}</span>
+function ProductArtwork({ product }) {
+  const symbols = {
+    'pearl-bow': '✳', 'tulip-strap': '✿', 'camellia-wrist': '❀', 'moonstone-chain': '✧',
+    'amber-bear': '♡', 'charm-bear': '♧', 'charm-capybara': '☁', 'charm-bunny': '◌',
+    'charm-unicorn': '✦', 'diy-kit': '✂', 'diy-jar': '✿', 'diy-bag': '♡',
+    'hw-clasp': '⌁', 'hw-wire': '〰'
+  };
+  return <div className={'artwork artwork-' + product.category}>
+    <span className="artwork-orbit" />
+    <span className="artwork-symbol">{symbols[product.svgType] || '✳'}</span>
+    <span className="artwork-caption">PEACH GIRL · HANDMADE</span>
+    <span className="artwork-number">{String(product.id).padStart(2, '0')}</span>
   </div>;
 }
 
-function ProductModal({ product, onClose, onAdd }) {
-  const [selections, setSelections] = useState({});
-  const [qty, setQty] = useState(1);
-  useEffect(() => { setSelections({}); setQty(1); }, [product?.id]);
+function ProductCard({ product, onOpen, onAdd }) {
+  return <article className="product-card">
+    <button className="product-visual" onClick={() => onOpen(product)} aria-label={'查看' + product.title}>
+      <ProductArtwork product={product} />
+      {product.isNew && <span className="product-flag">NEW</span>}
+      <span className="quick-view">查看商品 <ArrowUpRight size={15} /></span>
+    </button>
+    <div className="product-info">
+      <div className="product-category">{product.categoryName}</div>
+      <button className="product-title" onClick={() => onOpen(product)}>{product.title}</button>
+      <div className="product-bottom">
+        <div className="product-price">NT$ {money(product.price)}</div>
+        <button className="add-button" onClick={() => onAdd(product)} aria-label="加入購物袋"><Plus size={17} /></button>
+      </div>
+    </div>
+  </article>;
+}
+
+function ProductDialog({ product, onClose, onAdd }) {
+  const [variant, setVariant] = useState({});
   if (!product) return null;
-  return <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-    <section className="product-modal" role="dialog" aria-modal="true" aria-label="商品詳情">
-      <button className="icon-button modal-close" onClick={onClose} aria-label="關閉"><X /></button>
-      <div className="modal-art"><ProductArtwork product={product} large /></div>
-      <div className="modal-content">
-        <p className="eyebrow">{product.categoryName} · PRODUCT DETAILS</p>
+  return <div className="overlay" onMouseDown={onClose}>
+    <section className="product-dialog" onMouseDown={e => e.stopPropagation()}>
+      <button className="icon-button dialog-close" onClick={onClose}><X /></button>
+      <div className="dialog-art"><ProductArtwork product={product} /></div>
+      <div className="dialog-copy">
+        <div className="eyebrow">{product.categoryName}</div>
         <h2>{product.title}</h2>
-        <p className="muted">{product.subtitle}</p>
-        <div className="modal-price"><strong>NT$ {money(product.price)}</strong>{product.originalPrice > product.price && <del>NT$ {money(product.originalPrice)}</del>}</div>
-        <p className="description">{product.description || '以細膩選材與手作細節，為日常增添一點溫柔。'}</p>
-        {product.specsInfo && <div className="spec-box"><span className="eyebrow">DETAILS</span><p>{product.specsInfo}</p></div>}
-        {product.variants?.map((variant) => <label className="variant-field" key={variant.name}>
-          <span>{variant.name}</span>
-          <select value={selections[variant.name] || ''} onChange={(e) => setSelections(s => ({ ...s, [variant.name]: e.target.value }))}>
-            <option value="">請選擇{variant.name}</option>
-            {variant.options.map(option => <option key={option} value={option}>{option}</option>)}
-          </select>
-        </label>)}
-        <div className="purchase-row">
-          <div className="quantity-control"><button onClick={() => setQty(q => Math.max(1, q - 1))}><Minus size={15}/></button><span>{qty}</span><button onClick={() => setQty(q => q + 1)}><Plus size={15}/></button></div>
-          <button className="primary-button" disabled={!product.inStock || (product.variants || []).some(v => !selections[v.name])} onClick={() => onAdd(product, qty, selections)}>{product.inStock ? '加入購物袋' : '暫時缺貨'} <ArrowUpRight size={16}/></button>
-        </div>
-        {!product.inStock && <p className="stock-note">此商品目前補貨中，歡迎稍後再來看看。</p>}
-        {product.reviews?.length > 0 && <div className="reviews"><span className="eyebrow">CUSTOMER NOTES</span><h3>買家回饋</h3>{product.reviews.slice(0, 3).map((review, i) => <div className="review" key={i}><div className="review-head"><strong>{review.user}</strong><span>★ {review.rating} · {review.date}</span></div><p>{review.comment}</p></div>)}</div>}
+        <p className="dialog-subtitle">{product.subtitle}</p>
+        <div className="dialog-price">NT$ {money(product.price)} <del>{product.originalPrice ? 'NT$ ' + money(product.originalPrice) : ''}</del></div>
+        <p className="dialog-description">{product.description}</p>
+        {product.variants?.map((group, i) => <fieldset className="variant-group" key={group.name}>
+          <legend>{group.name}</legend>
+          <div className="variant-options">{group.options.map(option => <button key={option} className={variant[i] === option ? 'variant active' : 'variant'} onClick={() => setVariant(v => ({ ...v, [i]: option }))}>{option}</button>)}</div>
+        </fieldset>)}
+        <button className="primary-button dialog-add" onClick={() => { onAdd(product, variant); onClose(); }}>加入購物袋 <ArrowUpRight size={17} /></button>
+        <p className="stock-note">{product.inStock ? '現貨供應' : '目前缺貨'} · {product.freeShippingEligible ? '符合免運活動' : '依結帳計算運費'}</p>
       </div>
     </section>
   </div>;
 }
 
-function SideDrawer({ type, items, productsById, onClose, onQty, onRemove, onOpenProduct, onAdd }) {
-  const isCart = type === 'cart';
-  const entries = isCart ? items : items.map(id => ({ id, qty: 1 }));
-  const total = entries.reduce((sum, item) => sum + (productsById[item.id]?.price || 0) * item.qty, 0);
-  return <div className="overlay drawer-overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-    <aside className="side-drawer">
-      <div className="drawer-header"><div><p className="eyebrow">{isCart ? 'YOUR BAG' : 'SAVED PIECES'}</p><h2>{isCart ? '購物袋' : '我的收藏'}</h2></div><button className="icon-button" onClick={onClose}><X/></button></div>
-      <div className="drawer-items">
-        {entries.length === 0 ? <div className="empty-drawer"><span>✳</span><h3>{isCart ? '購物袋還是空的' : '還沒有收藏商品'}</h3><p>慢慢挑選，找到讓你心動的小物。</p></div> : entries.map(item => {
-          const product = productsById[item.id]; if (!product) return null;
-          return <div className="drawer-item" key={item.id}>
-            <button className="drawer-thumb" onClick={() => onOpenProduct(product)}><ProductArtwork product={product}/></button>
-            <div className="drawer-item-info"><button className="text-link" onClick={() => onOpenProduct(product)}>{product.title}</button><span>NT$ {money(product.price)}</span>
-              {isCart && <div className="mini-qty"><button onClick={() => onQty(item.id, -1)}><Minus size={12}/></button>{item.qty}<button onClick={() => onQty(item.id, 1)}><Plus size={12}/></button></div>}
-            </div>
-            <button className="remove-button" onClick={() => onRemove(item.id)} aria-label="移除"><Trash2 size={15}/></button>
-          </div>;
-        })}
-      </div>
-      {isCart && <div className="drawer-footer"><div className="total-line"><span>商品小計</span><strong>NT$ {money(total)}</strong></div><p>運費與付款方式將於正式結帳功能上線後計算。</p><button className="primary-button full" disabled>結帳功能準備中</button></div>}
+function CartDrawer({ open, items, onClose, onChange }) {
+  if (!open) return null;
+  const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  return <div className="overlay cart-overlay" onMouseDown={onClose}>
+    <aside className="cart-drawer" onMouseDown={e => e.stopPropagation()}>
+      <div className="drawer-head"><div><div className="eyebrow">YOUR BAG</div><h2>購物袋 <span>({items.reduce((s, x) => s + x.quantity, 0)})</span></h2></div><button className="icon-button" onClick={onClose}><X /></button></div>
+      {items.length === 0 ? <div className="empty-cart"><ShoppingBag size={34} /><p>購物袋目前是空的</p><button className="text-link" onClick={onClose}>繼續逛逛 <ArrowUpRight size={15} /></button></div> :
+        <><div className="cart-items">{items.map(item => <div className="cart-item" key={item.id}>
+          <div className="cart-thumb"><ProductArtwork product={item} /></div>
+          <div className="cart-item-copy"><strong>{item.title}</strong><span>NT$ {money(item.price)}</span><div className="quantity"><button onClick={() => onChange(item.id, -1)}><Minus size={13} /></button><span>{item.quantity}</span><button onClick={() => onChange(item.id, 1)}><Plus size={13} /></button></div></div>
+          <button className="remove-item" onClick={() => onChange(item.id, -item.quantity)}><X size={15} /></button>
+        </div>)}</div><div className="cart-total"><div><span>商品小計</span><strong>NT$ {money(total)}</strong></div><button className="primary-button" disabled>前往結帳 <ArrowUpRight size={17} /></button><p>結帳功能即將開放</p></div></>}
     </aside>
   </div>;
 }
 
 export default function App() {
   const [category, setCategory] = useState('all');
-  const [keyword, setKeyword] = useState('');
-  const [activeProduct, setActiveProduct] = useState(null);
-  const [drawer, setDrawer] = useState('');
-  const [cart, setCart] = useState(() => readStore('peach-cart', []));
-  const [favorites, setFavorites] = useState(() => readStore('peach-favorites', []));
-  const [mobileSearch, setMobileSearch] = useState(false);
-  const [toast, setToast] = useState('');
-  const productsById = useMemo(() => Object.fromEntries(products.map(p => [p.id, p])), []);
-  useEffect(() => { localStorage.setItem('peach-cart', JSON.stringify(cart)); }, [cart]);
-  useEffect(() => { localStorage.setItem('peach-favorites', JSON.stringify(favorites)); }, [favorites]);
-  const filtered = useMemo(() => products.filter(p => (category === 'all' || p.category === category) && `${p.title} ${p.subtitle || ''} ${p.categoryName || ''}`.toLowerCase().includes(keyword.trim().toLowerCase())), [category, keyword]);
-  const cartCount = cart.reduce((n, item) => n + item.qty, 0);
-  const notify = (message) => { setToast(message); window.setTimeout(() => setToast(''), 2200); };
-  const addToCart = (product, qty = 1, selections = {}) => {
-    setCart(current => {
-      const optionText = Object.entries(selections).map(([k,v]) => `${k}：${v}`).join(' / ');
-      const key = `${product.id}|${optionText}`;
-      const found = current.find(item => item.key === key);
-      return found ? current.map(item => item.key === key ? { ...item, qty: item.qty + qty } : item) : [...current, { id: product.id, key, qty, options: optionText }];
+  const [search, setSearch] = useState('');
+  const [selected, setSelected] = useState(null);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cart, setCart] = useState([]);
+  const [showSearch, setShowSearch] = useState(false);
+  const filtered = useMemo(() => products.filter(p => (category === 'all' || p.category === category) && (p.title + p.subtitle + p.categoryName).toLowerCase().includes(search.toLowerCase())), [category, search]);
+  const addToCart = (product) => {
+    setCart(items => {
+      const found = items.find(x => x.id === product.id);
+      return found ? items.map(x => x.id === product.id ? { ...x, quantity: x.quantity + 1 } : x) : [...items, { ...product, quantity: 1 }];
     });
-    setActiveProduct(null); setDrawer(''); notify('已加入購物袋');
+    setCartOpen(true);
   };
-  const changeQty = (id, delta) => setCart(current => current.map(item => item.id === id ? { ...item, qty: item.qty + delta } : item).filter(item => item.qty > 0));
-  const removeCart = (id) => setCart(current => current.filter(item => item.id !== id));
-  const toggleFavorite = (id) => setFavorites(current => current.includes(id) ? current.filter(x => x !== id) : [...current, id]);
-  const removeFavorite = (id) => setFavorites(current => current.filter(x => x !== id));
+  const changeCart = (id, delta) => setCart(items => items.map(x => x.id === id ? { ...x, quantity: x.quantity + delta } : x).filter(x => x.quantity > 0));
+  const count = cart.reduce((s, x) => s + x.quantity, 0);
 
-  return <div className="site-shell">
-    <div className="top-note">HANDMADE WITH CARE <span>·</span> 為日常留一點溫柔</div>
+  return <main>
+    <div className="announcement">一點手作，一點日常裡的小小喜歡 <span>✳</span></div>
     <header className="site-header">
-      <a className="brand" href="#" onClick={() => { setCategory('all'); setKeyword(''); }}><span className="brand-mark">p.</span><span><strong>PEACH GIRL</strong><small>HANDMADE STUDIO</small></span></a>
-      <nav className="desktop-nav"><a href="#shop">所有商品</a><a href="#footer">聯絡我們</a></nav>
+      <a className="wordmark" href="#top"><span className="brand-mark">p.</span><span>PEACH GIRL<small>HANDMADE SELECT SHOP</small></span></a>
+      <nav className="main-nav">
+        <a href="#shop">全部商品</a><a href="#shop" onClick={() => setCategory('finished')}>手作手機鍊</a><a href="#shop" onClick={() => setCategory('charm')}>可愛萌粒</a><a href="#shop" onClick={() => setCategory('diy')}>DIY 材料</a>
+      </nav>
       <div className="header-actions">
-        <button className="icon-button search-toggle" onClick={() => setMobileSearch(v => !v)} aria-label="搜尋"><Search/></button>
-        <button className="icon-button" onClick={() => setDrawer('favorites')} aria-label="收藏"><Heart/><i>{favorites.length}</i></button>
-        <button className="bag-button" onClick={() => setDrawer('cart')}><ShoppingBag size={17}/><span>購物袋</span><b>{cartCount}</b></button>
+        <button className="icon-button" onClick={() => setShowSearch(v => !v)} aria-label="搜尋"><Search size={20} /></button>
+        <button className="bag-button" onClick={() => setCartOpen(true)}><ShoppingBag size={19} /><span>購物袋</span>{count > 0 && <b>{count}</b>}</button>
       </div>
     </header>
-    {mobileSearch && <div className="mobile-search"><Search size={17}/><input autoFocus value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="搜尋商品名稱或關鍵字"/><button onClick={() => {setKeyword('');setMobileSearch(false)}}><X size={16}/></button></div>}
-    <main>
-      <section className="shop-section" id="shop">
-        <div className="section-top"><div><p className="eyebrow">THE COLLECTION</p><h2>日常選物<span> / Shop</span></h2></div><div className="desktop-search"><Search size={17}/><input value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="搜尋商品..."/>{keyword && <button onClick={() => setKeyword('')}><X size={15}/></button>}</div></div>
-        <div className="shop-toolbar"><div className="category-list">{categories.map(c => <button key={c.id} className={category === c.id ? 'active' : ''} onClick={() => setCategory(c.id)}>{c.label}</button>)}</div><span className="count-label"><SlidersHorizontal size={14}/> {filtered.length} ITEMS</span></div>
-        {filtered.length ? <div className="product-grid">{filtered.map((product, index) => <article className="product-card" key={product.id}>
-          <div className="card-visual" onClick={() => setActiveProduct(product)} role="button" tabIndex="0" onKeyDown={e => e.key === 'Enter' && setActiveProduct(product)}><ProductArtwork product={product}/>{product.badge && <span className="card-badge">{product.badge}</span>}<button className={favorites.includes(product.id) ? 'favorite-button saved' : 'favorite-button'} onClick={e => {e.stopPropagation();toggleFavorite(product.id)}} aria-label="收藏商品"><Heart size={17} fill={favorites.includes(product.id) ? 'currentColor' : 'none'}/></button><span className="view-detail">VIEW DETAIL <ArrowUpRight size={14}/></span></div>
-          <div className="card-copy"><p className="card-category">{product.categoryName}</p><button className="card-title" onClick={() => setActiveProduct(product)}>{product.title}</button><div className="card-bottom"><strong>NT$ {money(product.price)}</strong><button onClick={() => setActiveProduct(product)} aria-label="查看商品"><Plus size={17}/></button></div></div>
-        </article>)}</div> : <div className="no-results"><span>✳</span><h3>沒有找到符合的商品</h3><p>試試其他關鍵字，或看看全部商品。</p><button className="text-link" onClick={() => {setKeyword('');setCategory('all')}}>清除篩選條件 →</button></div>}
-      </section>
-    </main>
-    <footer className="site-footer" id="footer"><div className="footer-brand"><span className="brand-mark">p.</span><div><strong>PEACH GIRL</strong><small>HANDMADE STUDIO</small></div></div><p>把喜歡的日常，慢慢串成喜歡的樣子。</p><span>© 2026 PEACH GIRL HANDMADE STUDIO</span></footer>
-    {activeProduct && <ProductModal product={activeProduct} onClose={() => setActiveProduct(null)} onAdd={addToCart}/>}
-    {drawer && <SideDrawer type={drawer} items={drawer === 'cart' ? cart : favorites} productsById={productsById} onClose={() => setDrawer('')} onQty={changeQty} onRemove={drawer === 'cart' ? removeCart : removeFavorite} onOpenProduct={p => {setDrawer('');setActiveProduct(p)}}/>}
-    {toast && <div className="toast"><Check size={16}/>{toast}</div>}
-  </div>;
+    {showSearch && <div className="search-strip"><Search size={18} /><input autoFocus placeholder="搜尋喜歡的手作商品…" value={search} onChange={e => setSearch(e.target.value)} /><button onClick={() => {setSearch('');setShowSearch(false);}}><X size={17} /></button></div>}
+    <section className="intro" id="top">
+      <div className="intro-copy"><div className="eyebrow">SMALL THINGS, BIG JOY</div><h1>把日常，變成<br /><em>喜歡的樣子。</em></h1><p>從手作手機鍊到串珠材料，<br />挑一份讓生活更可愛的小心意。</p><a className="intro-link" href="#shop">逛逛所有商品 <ArrowUpRight size={17} /></a></div>
+      <div className="intro-art"><div className="intro-circle circle-one" /><div className="intro-circle circle-two" /><div className="intro-flower">✿</div><span className="intro-note">made with<br />a little love</span><span className="intro-stamp">PEACH<br />GIRL</span></div>
+    </section>
+    <section className="shop-section" id="shop">
+      <div className="section-heading"><div><div className="eyebrow">FIND YOUR FAVORITE</div><h2>探索手作選物</h2><p>每一件小物，都有自己的可愛細節。</p></div><span className="item-count">{filtered.length} ITEMS</span></div>
+      <div className="shop-toolbar"><div className="category-list">{categories.map(c => <button key={c.id} className={category === c.id ? 'category-chip active' : 'category-chip'} onClick={() => setCategory(c.id)}>{c.label}</button>)}</div><div className="inline-search"><Search size={16} /><input placeholder="搜尋商品" value={search} onChange={e => setSearch(e.target.value)} /></div></div>
+      {filtered.length ? <div className="product-grid">{filtered.map(p => <ProductCard key={p.id} product={p} onOpen={setSelected} onAdd={addToCart} />)}</div> : <div className="no-results">找不到符合的商品，試試其他關鍵字。</div>}
+    </section>
+    <section className="small-note"><span>✳</span><div><strong>MADE WITH CARE</strong><p>用心挑選材料，慢慢完成每一份手作。</p></div><span>PEACH GIRL · TAIWAN</span></section>
+    <footer className="site-footer"><a className="wordmark" href="#top"><span className="brand-mark">p.</span><span>PEACH GIRL<small>HANDMADE SELECT SHOP</small></span></a><span>© 2026 PEACH GIRL. MADE WITH LOVE.</span><a href="#top">BACK TO TOP ↑</a></footer>
+    <ProductDialog product={selected} onClose={() => setSelected(null)} onAdd={addToCart} />
+    <CartDrawer open={cartOpen} items={cart} onClose={() => setCartOpen(false)} onChange={changeCart} />
+  </main>;
 }
