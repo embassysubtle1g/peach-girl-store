@@ -27,3 +27,12 @@
 .dark .site-header{background:rgba(20,20,22,.76);border-color:rgba(255,255,255,.09);box-shadow:0 8px 28px rgba(0,0,0,.16)}
 @media(max-width:1100px){.site-header{margin-bottom:0}.page-content{padding-top:144px}.site-header .mobile-category-nav{top:100%}}
 @media(max-width:760px){.site-header{top:32px;min-height:66px;margin-bottom:0}.page-content{padding-top:130px}.site-header .mobile-category-nav{top:100%}}
+
+
+/* Category navigation appears only while the product catalog is in view. */
+.main-nav{transition:opacity .24s ease,transform .24s ease,visibility .24s ease}
+.main-nav.category-hidden{opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-6px)}
+.main-nav.category-visible{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0)}
+.mobile-category-nav{transition:opacity .24s ease,transform .24s ease,visibility .24s ease}
+.mobile-category-nav.category-hidden{opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-8px)}
+.mobile-category-nav.category-visible{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0)}
