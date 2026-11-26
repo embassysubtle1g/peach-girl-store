@@ -159,8 +159,12 @@ export default function App(){
         setCart(mergeCartItems(cart,remoteCart));
         setWishlist([...new Set([...wishlist,...(remote.wishlist||[]).map(String)])]);
         // Keep a separate guest backup so logging out restores the visitor's original cart and favorites.
-        localStorage.setItem('peach-girl-guest-backup-cart', JSON.stringify(readGuestCart()));
-        localStorage.setItem('peach-girl-guest-backup-wishlist', JSON.stringify(readGuestWishlist()));
+        if (localStorage.getItem('peach-girl-guest-cart') !== null || localStorage.getItem('peach-girl-guest-backup-cart') === null) {
+          localStorage.setItem('peach-girl-guest-backup-cart', JSON.stringify(readGuestCart()));
+        }
+        if (localStorage.getItem('peach-girl-guest-wishlist') !== null || localStorage.getItem('peach-girl-guest-backup-wishlist') === null) {
+          localStorage.setItem('peach-girl-guest-backup-wishlist', JSON.stringify(readGuestWishlist()));
+        }
         // Clear the active guest snapshot so it is not merged again on a later login.
         localStorage.removeItem('peach-girl-guest-cart');
         localStorage.removeItem('peach-girl-guest-wishlist');
