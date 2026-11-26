@@ -26,6 +26,12 @@ function dispatchApi_(request) {
     case 'memberGet':
       return getMemberFromToken_(req.token);
 
+    case 'memberGetCommerce':
+      return getMemberCommerce_(req.token);
+
+    case 'memberSaveCommerce':
+      return saveMemberCommerce_(req.token, data);
+
     case 'memberLogout':
       return logoutMember_(req.token);
 
