@@ -18,14 +18,14 @@
 
         google.script.run
           .withSuccessHandler(function (result) {
-            window.top.postMessage({
+            event.source.postMessage({
               type: 'PEACH_API_RESPONSE',
               id: message.id,
               result: result
             }, TRUSTED_ORIGIN);
           })
           .withFailureHandler(function (error) {
-            window.top.postMessage({
+            event.source.postMessage({
               type: 'PEACH_API_RESPONSE',
               id: message.id,
               result: { success: false, message: error && error.message ? error.message : 'API 執行失敗' }
@@ -34,7 +34,10 @@
           .bridgeCall(message.payload);
       });
 
-      window.top.postMessage({ type: 'PEACH_BRIDGE_READY' }, TRUSTED_ORIGIN);
+      // The readiness message contains no private data. Use '*' because HtmlService
+      // may wrap or redirect the bridge into a Google-hosted frame whose origin
+      // is not the GitHub Pages origin. The parent validates the sender origin.
+      window.top.postMessage({ type: 'PEACH_BRIDGE_READY' }, '*');
     })();
   </script>
 </body>
