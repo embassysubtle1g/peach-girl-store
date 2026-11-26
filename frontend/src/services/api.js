@@ -1,6 +1,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 
 let bridgeFrame = null;
+let bridgeWindow = null;
 let bridgeReadyPromise = null;
 let resolveBridgeReady = null;
 let rejectBridgeReady = null;
@@ -15,6 +16,7 @@ function resetBridge(error) {
   rejectBridgeReady = null;
   if (bridgeFrame?.parentNode) bridgeFrame.parentNode.removeChild(bridgeFrame);
   bridgeFrame = null;
+  bridgeWindow = null;
   bridgeReadyPromise = null;
   return error;
 }
@@ -73,9 +75,14 @@ window.addEventListener('message', event => {
   if (!message || typeof message !== 'object') return;
 
   if (message.type === 'PEACH_BRIDGE_READY') {
+    // HtmlService may run Bridge.html in a nested Google-hosted frame.
+    // Remember the exact window that announced readiness and send requests there.
+    bridgeWindow = event.source;
     resolveBridgeReady?.();
     return;
   }
+
+  if (event.source !== bridgeWindow) return;
 
   if (message.type === 'PEACH_API_RESPONSE' && message.id) {
     const pending = pendingRequests.get(message.id);
@@ -100,8 +107,14 @@ export async function callApi(action, data = {}, token = null) {
       reject(new Error('Apps Script 沒有回覆 API 請求，請確認部署版本與存取權限。'));
     }, 30000);
 
+    if (!bridgeWindow) {
+      window.clearTimeout(timeout);
+      reject(new Error('Apps Script 橋接視窗尚未就緒，請重新整理頁面再試一次。'));
+      return;
+    }
+
     pendingRequests.set(id, { resolve, reject, timeout });
-    bridgeFrame.contentWindow.postMessage({
+    bridgeWindow.postMessage({
       type: 'PEACH_API_REQUEST',
       id,
       payload: { action, data, token },
