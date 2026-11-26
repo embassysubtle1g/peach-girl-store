@@ -61,6 +61,8 @@ function ProductDialog({ product, onClose, onAdd }) {
           <div className="dialog-price">NT$ {money(product.price)} {product.originalPrice > product.price && <del>NT$ {money(product.originalPrice)}</del>}</div>
           <p className="dialog-description">{product.description}</p>
           {product.specsInfo && <div className="spec-note">{product.specsInfo}</div>}
+          {product.rating && <div className="review-summary"><span>★★★★★</span><strong>{product.rating.toFixed(1)}</strong><small>{product.reviewCount || 0} 則評價 · 已售 {product.soldCount || 0}</small></div>}
+          {product.reviews?.length > 0 && <div className="review-list"><strong>買家分享</strong>{product.reviews.slice(0, 2).map((review, i) => <div className="review-item" key={i}><div><b>{review.user}</b><small>{review.date}</small><span>{'★'.repeat(review.rating)}</span></div><p>{review.comment}</p></div>)}</div>}
           {product.variants?.map((group, i) => <fieldset className="variant-group" key={group.name}>
             <legend>{group.name}</legend>
             <div className="variant-options">{group.options.map(option => <button type="button" key={option} className={variant[i] === option ? 'variant active' : 'variant'} onClick={() => setVariant(v => ({ ...v, [i]: option }))}>{option}</button>)}</div>
@@ -169,11 +171,13 @@ export default function App() {
       <nav className="main-nav">{categories.map(c => <button key={c.id} className={category === c.id && !onlyWishlist ? 'nav-active' : ''} onClick={() => { setCategory(c.id); setOnlyWishlist(false); }}>{c.label}</button>)}</nav>
       <div className="header-actions">
         <div className="header-search"><Search size={16} /><input placeholder="搜尋手作選物..." value={search} onChange={e => setSearch(e.target.value)} /></div>
+        <button className="mobile-search-toggle icon-button" onClick={() => setShowSearch(v => !v)} aria-label="開啟搜尋"><Search size={19} /></button>
         <button className="icon-button theme-button" onClick={() => setDark(v => !v)} aria-label="切換深淺色">{dark ? <Sun size={19} /> : <Moon size={19} />}</button>
         <button className="bag-button" onClick={() => setCartOpen(true)}><ShoppingBag size={18} /><span>購物袋</span><b>{count}</b></button>
       </div>
       <div className="mobile-category-nav">{categories.map(c => <button key={c.id} className={category === c.id && !onlyWishlist ? 'active' : ''} onClick={() => { setCategory(c.id); setOnlyWishlist(false); }}>{c.label}</button>)}</div>
     </header>
+    {showSearch && <div className="mobile-search-strip"><Search size={17} /><input autoFocus placeholder="搜尋喜歡的手作商品..." value={search} onChange={e => setSearch(e.target.value)} /><button onClick={() => { setSearch(''); setShowSearch(false); }} aria-label="清除搜尋"><X size={17} /></button></div>}
 
     <main className="page-content" id="top">
       <section className="hero glass-card">
