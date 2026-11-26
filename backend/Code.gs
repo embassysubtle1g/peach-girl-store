@@ -15,8 +15,37 @@ var STORE_SHEETS = {
   Admins: ['admin_id','username','display_name','role','status','created_at','updated_at','last_login_at']
 };
 
-function doGet() {
+function doGet(e) {
+  if (e && e.parameter && e.parameter.bridge === '1') {
+    return HtmlService.createHtmlOutputFromFile('Bridge')
+      .setTitle('Peach Girl Store API Bridge')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
   return jsonResponse_({success:true,data:{service:'Peach Girl Store API',status:'ready'},message:'success'});
+}
+
+/**
+ * Called by the trusted storefront iframe through google.script.run.
+ * Keep this function public (no trailing underscore) for google.script.run.
+ */
+function bridgeCall(request) {
+  try {
+    var req = request || {};
+    var d = req.data || {}, result;
+    switch (req.action) {
+      case 'getProducts': result = readProducts_().filter(function(p){return p.status==='active';}).map(publicProduct_); break;
+      case 'adminLogin': result = login_(d); break;
+      case 'adminListProducts': requireAdmin_(req.token); result = readProducts_().map(publicProduct_); break;
+      case 'saveProduct': requireAdmin_(req.token); result = saveProduct_(d); break;
+      case 'setProductStatus': requireAdmin_(req.token); result = setStatus_(d); break;
+      case 'uploadProductImage': requireAdmin_(req.token); result = uploadImage_(d); break;
+      case 'adminLogout': if(req.token) CacheService.getScriptCache().remove('admin_'+hash_(req.token)); result={loggedOut:true}; break;
+      default: throw new Error('不支援的 API：'+req.action);
+    }
+    return {success:true,data:result,message:'success'};
+  } catch(err) {
+    return {success:false,data:null,message:err.message || 'API 執行失敗'};
+  }
 }
 function doPost(e) {
   try {
