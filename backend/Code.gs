@@ -52,7 +52,9 @@ function requireAdmin_(token) {
   if(!token || CacheService.getScriptCache().get('admin_'+hash_(token))!=='1') throw new Error('登入已逾時，請重新登入');
 }
 function passwordHash_(password,salt) {
-  return Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,salt+':'+password,Utilities.Charset.UTF_8));
+  var value=salt+':'+password;
+  for(var i=0;i<10000;i++) value=Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,value,Utilities.Charset.UTF_8));
+  return value;
 }
 function hash_(value) {
   return Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,value,Utilities.Charset.UTF_8)).replace(/=+$/g,'');
@@ -88,7 +90,8 @@ function saveProduct_(d) {
       if(row<0) throw new Error('找不到要編輯的商品');
     } else id='PG-'+Utilities.getUuid().slice(0,8).toUpperCase();
     var old=row>0?rows[row-1]:[];
-    var record=[id,title,String(d.subtitle||'').trim(),category,String(d.categoryName||'手作選物'),price,Number(d.originalPrice)||price,String(d.description||'').trim(),old[8]||'active',String(d.imageUrl||old[9]||''),d.inStock===false?false:true,row>0?old[11]:now,now];
+    var imageUrl=Object.prototype.hasOwnProperty.call(d,'imageUrl')?String(d.imageUrl||''):String(old[9]||'');
+    var record=[id,title,String(d.subtitle||'').trim(),category,String(d.categoryName||'手作選物'),price,Number(d.originalPrice)||price,String(d.description||'').trim(),old[8]||'active',imageUrl,d.inStock===false?false:true,row>0?old[11]:now,now];
     if(row>0) sh.getRange(row,1,1,record.length).setValues([record]); else sh.appendRow(record);
     var obj={}; PRODUCT_HEADERS.forEach(function(k,j){obj[k]=record[j];}); return publicProduct_(obj);
   } finally { lock.releaseLock(); }
