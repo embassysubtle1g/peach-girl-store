@@ -9,6 +9,29 @@ let bridgeReadyTimer = null;
 let requestSequence = 0;
 const pendingRequests = new Map();
 
+function normalizeImageUrl(value) {
+  if (typeof value !== 'string' || !value) return value;
+  try {
+    const url = new URL(value);
+    const fileId = url.searchParams.get('id');
+    if (url.hostname === 'drive.google.com' && url.pathname === '/uc' && fileId) {
+      return 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(fileId) + '&sz=w1200';
+    }
+  } catch {
+    // Keep non-URL values unchanged; the UI can handle an empty or invalid image URL.
+  }
+  return value;
+}
+
+function normalizeApiData(value) {
+  if (Array.isArray(value)) return value.map(normalizeApiData);
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(Object.entries(value).map(([key, item]) => [
+    key,
+    key === 'imageUrl' ? normalizeImageUrl(item) : normalizeApiData(item),
+  ]));
+}
+
 function resetBridge(error) {
   if (bridgeReadyTimer) window.clearTimeout(bridgeReadyTimer);
   bridgeReadyTimer = null;
@@ -92,7 +115,7 @@ window.addEventListener('message', event => {
     if (!message.result?.success) {
       pending.reject(new Error(message.result?.message || 'API 執行失敗'));
     } else {
-      pending.resolve(message.result.data);
+      pending.resolve(normalizeApiData(message.result.data));
     }
   }
 });
