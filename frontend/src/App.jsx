@@ -124,7 +124,6 @@ export default function App() {
           <div className="card-copy"><p className="card-category">{product.categoryName}</p><button className="card-title" onClick={() => setActiveProduct(product)}>{product.title}</button><div className="card-bottom"><strong>NT$ {money(product.price)}</strong><button onClick={() => setActiveProduct(product)} aria-label="查看商品"><Plus size={17}/></button></div></div>
         </article>)}</div> : <div className="no-results"><span>✳</span><h3>沒有找到符合的商品</h3><p>試試其他關鍵字，或看看全部商品。</p><button className="text-link" onClick={() => {setKeyword('');setCategory('all')}}>清除篩選條件 →</button></div>}
       </section>
-      <section className="values-section"><div><p className="eyebrow">MADE FOR YOUR EVERYDAY</p><h2>簡單的日常，<br/>也值得被好好對待。</h2></div><div className="value-items"><article><span>01</span><h3>細節手作</h3><p>從選材到完成，每個步驟都細心對待。</p></article><article><span>02</span><h3>用心選物</h3><p>挑選適合日常搭配、實用又耐看的小物。</p></article><article><span>03</span><h3>慢慢生活</h3><p>不必太多，剛剛好的喜歡就很好。</p></article></div></section>
     </main>
     <footer className="site-footer" id="footer"><div className="footer-brand"><span className="brand-mark">p.</span><div><strong>PEACH GIRL</strong><small>HANDMADE STUDIO</small></div></div><p>把喜歡的日常，慢慢串成喜歡的樣子。</p><span>© 2026 PEACH GIRL HANDMADE STUDIO</span></footer>
     {activeProduct && <ProductModal product={activeProduct} onClose={() => setActiveProduct(null)} onAdd={addToCart}/>}

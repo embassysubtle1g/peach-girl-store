@@ -206,3 +206,80 @@ body{
   .side-drawer{background:rgba(249,250,250,.94);border-radius:24px 24px 0 0;height:100%}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+
+/* Minimal Apple-inspired layout */
+.top-note{display:none}
+.site-header{
+  height:68px;padding:0 clamp(20px,6vw,88px);
+  background:rgba(255,255,255,.88);border-bottom:1px solid #eeeeef;
+  box-shadow:none;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)
+}
+.brand-mark{width:32px;height:32px;box-shadow:none}
+.desktop-nav{gap:30px;font-size:12px}
+.header-actions{gap:8px}
+.icon-button{width:35px;height:35px}
+.icon-button:hover{background:#f4f4f5;transform:none}
+.bag-button{height:36px;background:#fff;border:1px solid #e8e8ea;box-shadow:none;backdrop-filter:none}
+.bag-button:hover{background:#f7f7f8;box-shadow:none}
+.shop-section{padding:54px clamp(20px,8vw,116px) 88px}
+.section-top{margin-bottom:26px}
+.section-top h2{font-size:27px;letter-spacing:-.7px}
+.section-top h2 span{font-size:12px}
+.eyebrow{color:#92969a}
+.section-top .eyebrow{margin-bottom:9px}
+.desktop-search{height:38px;border:1px solid #e8e8ea;border-radius:8px;padding:0 12px;background:#fff;box-shadow:none;backdrop-filter:none}
+.shop-toolbar{padding-bottom:12px;margin-bottom:22px}
+.category-list{gap:22px}
+.category-list button{border-radius:0;padding:7px 0;color:#777b80}
+.category-list button.active{background:none;color:#202124;box-shadow:none;font-weight:600}
+.category-list button.active:after{display:block;height:1px;bottom:-13px;background:#202124}
+.category-list button:hover:not(.active){background:none;color:#202124}
+.product-grid{gap:32px 20px}
+.product-card{padding:0 0 8px;border:0;border-radius:0;background:transparent;box-shadow:none;backdrop-filter:none;transition:none}
+.product-card:hover{transform:none;box-shadow:none}
+.card-visual{border-radius:3px;background:#f5f5f5}
+.product-artwork,.artwork-finished,.artwork-charm,.artwork-diy,.artwork-hardware{
+  border-radius:3px;background:#f4f4f2
+}
+.artwork-symbol{color:#a6aaa5;opacity:.55;text-shadow:none}
+.artwork-charm .artwork-symbol{color:#b9a6a5}
+.artwork-diy .artwork-symbol{color:#9eaaa0}
+.artwork-hardware .artwork-symbol{color:#9da2a0}
+.artwork-index,.artwork-caption{color:#8b8e8d}
+.card-badge{border:0;border-radius:2px;background:rgba(255,255,255,.92);backdrop-filter:none;color:#565a5d}
+.favorite-button{width:31px;height:31px;border:0;background:rgba(255,255,255,.92);backdrop-filter:none;box-shadow:none}
+.favorite-button:hover{transform:none;background:#fff}
+.card-copy{padding:12px 1px 0}
+.card-category{color:#85898d;font-size:9px}
+.card-title{font-size:12px;color:#242629;font-weight:500;min-height:0}
+.card-bottom{margin-top:9px}
+.card-bottom strong{font-size:12px;font-weight:600}
+.card-bottom button{width:29px;height:29px;border-radius:50%;background:transparent;border:1px solid #e5e5e6;color:#55595c}
+.card-bottom button:hover{background:#202124;border-color:#202124}
+.view-detail{display:none}
+.site-footer{border-top:1px solid #eeeeef;padding:27px clamp(20px,6vw,88px);margin-top:0}
+.site-footer>p{font-size:11px}
+.overlay{backdrop-filter:blur(8px)}
+.product-modal{border-radius:12px;box-shadow:0 18px 60px rgba(0,0,0,.14)}
+.side-drawer{box-shadow:-10px 0 35px rgba(0,0,0,.08)}
+.primary-button{border-radius:7px;background:#202124;border-color:#202124}
+.primary-button:hover:not(:disabled){background:#44474a;border-color:#44474a}
+.toast{border-radius:8px;background:#202124}
+@media(max-width:650px){
+ .site-header{height:60px;padding:0 15px}
+ .brand-mark{width:29px;height:29px}
+ .shop-section{padding:38px 15px 60px}
+ .section-top{margin-bottom:20px}
+ .section-top h2{font-size:23px}
+ .category-list{gap:14px}
+ .category-list button{font-size:10px}
+ .shop-toolbar{margin-bottom:17px}
+ .product-grid{gap:23px 10px}
+ .product-card{padding:0 0 6px;border-radius:0}
+ .card-visual,.product-artwork{border-radius:2px}
+ .card-copy{padding:9px 1px 0}
+ .card-title{font-size:11px}
+ .card-bottom button{width:26px;height:26px}
+ .site-footer{padding:22px 16px;grid-template-columns:1fr 1fr}
+}
