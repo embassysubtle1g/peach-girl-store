@@ -14,6 +14,7 @@ var STORE_SHEETS = {
   Orders: ['order_id','member_id','order_number','order_status','subtotal','discount_amount','shipping_fee','total_amount','recipient_name','recipient_phone','shipping_address','customer_note','created_at','updated_at'],
   OrderItems: ['order_item_id','order_id','product_id','variant_id','product_title','variant_description','unit_price','quantity','line_total','created_at'],
   Favorites: ['favorite_id','member_id','product_id','created_at'],
+  Cart: ['cart_item_id','member_id','product_id','variant_text','quantity','created_at','updated_at'],
   Payments: ['payment_id','order_id','payment_method','payment_status','amount','transaction_id','paid_at','created_at','updated_at'],
   Shipments: ['shipment_id','order_id','carrier','tracking_number','shipping_status','shipped_at','delivered_at','created_at','updated_at'],
   Admins: ['admin_id','username','display_name','role','status','created_at','updated_at','last_login_at'],
