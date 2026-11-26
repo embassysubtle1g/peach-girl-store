@@ -83,10 +83,12 @@ function CheckoutDialog({open,total,onClose,onDone}) {
 
 export default function App(){
   const [category,setCategory]=useState('all'),[search,setSearch]=useState(''),[selected,setSelected]=useState(null),[cartOpen,setCartOpen]=useState(false),[cart,setCart]=useState([]),[sortBy,setSortBy]=useState('featured'),[onlyWishlist,setOnlyWishlist]=useState(false);
+  const [catalogVisible,setCatalogVisible]=useState(false);
   const [wishlist,setWishlist]=useState(()=>{try{return JSON.parse(localStorage.getItem('peach-girl-wishlist')||'[]')}catch{return[]}});
   const [dark,setDark]=useState(()=>localStorage.getItem('peach-girl-theme')==='dark'),[toast,setToast]=useState(''),[promoApplied,setPromoApplied]=useState(false),[checkoutOpen,setCheckoutOpen]=useState(false),[checkoutTotal,setCheckoutTotal]=useState(0);
   useEffect(()=>{document.documentElement.classList.toggle('dark',dark);localStorage.setItem('peach-girl-theme',dark?'dark':'light')},[dark]);
   useEffect(()=>localStorage.setItem('peach-girl-wishlist',JSON.stringify(wishlist)),[wishlist]);
+  useEffect(()=>{const catalog=document.getElementById('catalog');if(!catalog)return;const observer=new IntersectionObserver(([entry])=>setCatalogVisible(entry.isIntersecting),{rootMargin:'-145px 0px -8% 0px',threshold:0});observer.observe(catalog);return()=>observer.disconnect()},[]);
   const filtered=useMemo(()=>{let list=products.filter(p=>(category==='all'||p.category===category)&&(!onlyWishlist||wishlist.includes(p.id))&&(p.title+p.subtitle+p.categoryName+p.description).toLowerCase().includes(search.trim().toLowerCase()));if(sortBy==='price-asc')list=[...list].sort((a,b)=>a.price-b.price);if(sortBy==='price-desc')list=[...list].sort((a,b)=>b.price-a.price);return list},[category,search,onlyWishlist,wishlist,sortBy]);
   const notify=message=>{setToast(message);window.clearTimeout(window.__peachToastTimer);window.__peachToastTimer=window.setTimeout(()=>setToast(''),2400)};
   const addToCart=(product,variants={})=>{if(!product.inStock){notify('這項商品目前缺貨');return}const variantText=Object.entries(variants).map(([i,v])=>product.variants?.[Number(i)]?.name+'：'+v).join(' / ');const key=product.id+'-'+variantText;setCart(items=>{const old=items.find(x=>x.key===key);return old?items.map(x=>x.key===key?{...x,quantity:x.quantity+1}:x):[...items,{...product,key,variantText,quantity:1}]});setCartOpen(true);notify('已加入購物袋')};
@@ -103,12 +105,12 @@ export default function App(){
     <div className="announcement"><Sparkles size={13}/> 把喜歡的日常，慢慢串成喜歡的樣子。</div>
     <header className="site-header">
       <a className="wordmark" href="#top" onClick={resetFilters}><span className="brand-mark">p.</span><span>PEACH GIRL<small>HANDMADE SELECT SHOP</small></span></a>
-      <nav className="main-nav">{categories.map(c=><button key={c.id} className={category===c.id&&!onlyWishlist?'nav-active':''} onClick={()=>{setCategory(c.id);setOnlyWishlist(false)}}>{c.label}</button>)}</nav>
+      <nav className={'main-nav '+(catalogVisible?'category-visible':'category-hidden')} aria-hidden={!catalogVisible}>{categories.map(c=><button key={c.id} className={category===c.id&&!onlyWishlist?'nav-active':''} onClick={()=>{setCategory(c.id);setOnlyWishlist(false)}}>{c.label}</button>)}</nav>
       <div className="header-actions"><label className="header-search"><Search size={16}/><input placeholder="搜尋手作選物..." value={search} onChange={e=>setSearch(e.target.value)}/>{search&&<button onClick={()=>setSearch('')} aria-label="清除搜尋"><X size={13}/></button>}</label>
         <button className="icon-button theme-button" onClick={()=>setDark(v=>!v)} aria-label="切換深淺色">{dark?<Sun size={18}/>:<Moon size={18}/>}</button>
         <button className="icon-button" onClick={()=>{setOnlyWishlist(v=>!v);document.getElementById('catalog')?.scrollIntoView({behavior:'smooth'})}} aria-label="我的收藏"><Heart size={18}/></button>
         <button className="bag-button" onClick={()=>setCartOpen(true)}><ShoppingBag size={17}/><span>購物袋</span><b>{count}</b></button></div>
-      <nav className="mobile-category-nav">{categories.map(c=><button key={c.id} className={category===c.id&&!onlyWishlist?'active':''} onClick={()=>{setCategory(c.id);setOnlyWishlist(false)}}>{c.label}</button>)}</nav>
+      <nav className={'mobile-category-nav '+(catalogVisible?'category-visible':'category-hidden')} aria-hidden={!catalogVisible}>{categories.map(c=><button key={c.id} className={category===c.id&&!onlyWishlist?'active':''} onClick={()=>{setCategory(c.id);setOnlyWishlist(false)}}>{c.label}</button>)}</nav>
     </header>
     <main className="page-content">
       <section className="hero glass-card"><div className="hero-glow"/><div className="hero-copy">
