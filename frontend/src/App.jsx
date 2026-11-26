@@ -107,7 +107,7 @@ export default function App() {
     <div className="top-note">HANDMADE WITH CARE <span>·</span> 為日常留一點溫柔</div>
     <header className="site-header">
       <a className="brand" href="#" onClick={() => { setCategory('all'); setKeyword(''); }}><span className="brand-mark">p.</span><span><strong>PEACH GIRL</strong><small>HANDMADE STUDIO</small></span></a>
-      <nav className="desktop-nav"><a href="#shop">所有商品</a><a href="#story">關於手作</a><a href="#footer">聯絡我們</a></nav>
+      <nav className="desktop-nav"><a href="#shop">所有商品</a><a href="#footer">聯絡我們</a></nav>
       <div className="header-actions">
         <button className="icon-button search-toggle" onClick={() => setMobileSearch(v => !v)} aria-label="搜尋"><Search/></button>
         <button className="icon-button" onClick={() => setDrawer('favorites')} aria-label="收藏"><Heart/><i>{favorites.length}</i></button>
@@ -116,12 +116,6 @@ export default function App() {
     </header>
     {mobileSearch && <div className="mobile-search"><Search size={17}/><input autoFocus value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="搜尋商品名稱或關鍵字"/><button onClick={() => {setKeyword('');setMobileSearch(false)}}><X size={16}/></button></div>}
     <main>
-      <section className="hero" id="story">
-        <div className="hero-copy"><p className="eyebrow">SMALL THINGS, MADE WITH LOVE</p><h1>把喜歡的日常，<br/><em>慢慢串成喜歡的樣子。</em></h1><p className="hero-desc">從一顆珠子、一條手機鍊，到親手完成的小作品。<br/>讓每一份細節，都成為生活裡剛剛好的溫柔。</p><a className="hero-link" href="#shop">探索手作選物 <ArrowUpRight size={17}/></a></div>
-        <div className="hero-visual"><div className="hero-orbit orbit-one"></div><div className="hero-orbit orbit-two"></div><div className="hero-stamp">MADE<br/>BY HAND<br/><span>✳</span></div><div className="hero-caption">PEACH GIRL / OBJECTS FOR EVERYDAY</div></div>
-        <span className="hero-number">01 — 04</span>
-      </section>
-      <section className="intro-strip"><span>01 / OUR PHILOSOPHY</span><p>不追趕流行，只挑選能陪伴日常的美好。</p><span>TAIWAN · HANDMADE</span></section>
       <section className="shop-section" id="shop">
         <div className="section-top"><div><p className="eyebrow">THE COLLECTION</p><h2>日常選物<span> / Shop</span></h2></div><div className="desktop-search"><Search size={17}/><input value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="搜尋商品..."/>{keyword && <button onClick={() => setKeyword('')}><X size={15}/></button>}</div></div>
         <div className="shop-toolbar"><div className="category-list">{categories.map(c => <button key={c.id} className={category === c.id ? 'active' : ''} onClick={() => setCategory(c.id)}>{c.label}</button>)}</div><span className="count-label"><SlidersHorizontal size={14}/> {filtered.length} ITEMS</span></div>
