@@ -85,3 +85,9 @@
 
 /* Reduce animated ambient layer work on mobile WebKit. */
 @media(max-width:760px){.ambient{animation:none}}
+
+
+/* Member dialog: lock form controls and communicate the in-flight request state. */
+.member-fieldset{border:0;margin:0;padding:0;min-width:0;display:grid;gap:13px}
+.member-dialog[aria-busy="true"] .member-tabs,.member-dialog[aria-busy="true"] .icon-button,.member-fieldset:disabled input{opacity:.6;cursor:not-allowed}
+.member-dialog[aria-busy="true"] .member-tabs button{cursor:not-allowed}
