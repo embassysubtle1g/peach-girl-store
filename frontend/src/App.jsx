@@ -60,7 +60,7 @@ function ProductDialog({ product, onClose, onAdd }) {
   useEffect(()=>setVariant({}),[product]);
   if(!product)return null;
   return <div className="overlay modal-overlay" onMouseDown={onClose}><section className="product-dialog glass-sheet" onMouseDown={e=>e.stopPropagation()}>
-    <div className="dialog-head"><span>{product.categoryName} · 商品規格與詳情</span><button className="icon-button" onClick={onClose} aria-label="關閉"><X size={17}/></button></div>
+    <div className="dialog-head"><span>{product.categoryName} · 商品規格與詳情</span><button className="icon-button" onPointerDown={e=>{if(e.pointerType==='touch')onClose()}} onClick={onClose} aria-label="關閉"><X size={17}/></button></div>
     <div className="dialog-body"><div className="dialog-art"><ProductArtwork product={product}/></div><div className="dialog-copy">
       <div className="eyebrow">PEACH GIRL · HANDMADE</div><h2>{product.title}</h2><p className="dialog-subtitle">{product.subtitle}</p>
       <div className="dialog-price">NT$ {money(product.price)} {product.originalPrice>product.price&&<del>NT$ {money(product.originalPrice)}</del>}</div>
@@ -80,7 +80,7 @@ function CartDrawer({open,items,onClose,onChange,onRemove,onPromo,promoApplied,o
   const [code,setCode]=useState('');
   if(!open)return null;
   return <><div className="cart-backdrop" onClick={onClose}/><aside className="cart-drawer glass-sheet">
-    <div className="drawer-head"><div><div className="eyebrow">YOUR LITTLE FAVORITES</div><h2>購物袋 <span>({count})</span></h2><p>把喜歡的小物帶回家。</p></div><button className="icon-button" onClick={onClose} aria-label="關閉購物袋"><X size={17}/></button></div>
+    <div className="drawer-head"><div><div className="eyebrow">YOUR LITTLE FAVORITES</div><h2>購物袋 <span>({count})</span></h2><p>把喜歡的小物帶回家。</p></div><button className="icon-button" onPointerDown={e=>{if(e.pointerType==='touch')onClose()}} onClick={onClose} aria-label="關閉購物袋"><X size={17}/></button></div>
     <div className="shipping-progress"><div className="shipping-copy"><span>{remaining===0?'已達免運門檻，享免費配送':'再選購 NT$ '+money(remaining)+' 即可享免運'}</span><strong>{progress}%</strong></div><div className="progress-track"><span style={{width:progress+'%'}}/></div></div>
     {items.length===0?<div className="empty-cart"><ShoppingBag size={38}/><p>購物袋目前是空的</p><button className="text-link" onClick={onClose}>繼續逛逛 <ArrowUpRight size={15}/></button></div>:<>
       <div className="cart-items">{items.map(item=><div className="cart-item" key={item.key}><div className="cart-thumb"><ProductArtwork product={item} compact/></div><div className="cart-item-copy"><strong>{item.title}</strong>{item.variantText&&<small>{item.variantText}</small>}<span>NT$ {money(item.price)}</span><div className="quantity"><button onClick={()=>onChange(item.key,-1)} aria-label="減少數量"><Minus size={13}/></button><span>{item.quantity}</span><button onClick={()=>onChange(item.key,1)} aria-label="增加數量"><Plus size={13}/></button></div></div><button className="remove-item" onClick={()=>onRemove(item.key)} aria-label="移除商品"><Trash2 size={15}/></button></div>)}</div>
@@ -97,7 +97,7 @@ function CheckoutDialog({open,total,onClose,onDone}) {
   useEffect(()=>{if(open)setStep('form')},[open]);
   if(!open)return null;
   return <div className="overlay" onMouseDown={onClose}><section className="checkout-dialog glass-sheet" onMouseDown={e=>e.stopPropagation()}>
-    {step==='form'?<><div className="dialog-head"><strong>快速結帳</strong><button className="icon-button" onClick={onClose}><X size={17}/></button></div><form className="checkout-form" onSubmit={e=>{e.preventDefault();setStep('success')}}>
+    {step==='form'?<><div className="dialog-head"><strong>快速結帳</strong><button className="icon-button" onPointerDown={e=>{if(e.pointerType==='touch')onClose()}} onClick={onClose}><X size={17}/></button></div><form className="checkout-form" onSubmit={e=>{e.preventDefault();setStep('success')}}>
       <label>收件人姓名<input required placeholder="請輸入姓名"/></label><label>聯絡電話<input required type="tel" placeholder="請輸入聯絡電話"/></label><label>配送地址<input required placeholder="請輸入完整配送地址"/></label>
       <div className="payment-choice"><span>選擇付款方式</span><label><input type="radio" name="payment" defaultChecked/> Apple Pay</label><label><input type="radio" name="payment"/> 信用卡一次付清</label></div>
       <div className="checkout-amount"><span>應付總金額</span><b>NT$ {money(total)}</b></div><button className="primary-button" type="submit">確認付款並下單 <Check size={16}/></button>
@@ -116,7 +116,7 @@ function MemberDialog({open,onClose,onSubmit,loading,error}) {
   if(!open)return null;
   const submit=e=>{e.preventDefault();if(mode==='register'&&password!==confirm)return;onSubmit({mode,email,password,displayName,phone})};
   return <div className="overlay" onMouseDown={onClose}><section className="member-dialog glass-sheet" onMouseDown={e=>e.stopPropagation()}>
-    <div className="dialog-head"><div><div className="eyebrow">PEACH GIRL MEMBER</div><strong>{mode==='login'?'會員登入':'建立會員帳號'}</strong></div><button className="icon-button" onClick={onClose} aria-label="關閉"><X size={17}/></button></div>
+    <div className="dialog-head"><div><div className="eyebrow">PEACH GIRL MEMBER</div><strong>{mode==='login'?'會員登入':'建立會員帳號'}</strong></div><button className="icon-button" onPointerDown={e=>{if(e.pointerType==='touch')onClose()}} onClick={onClose} aria-label="關閉"><X size={17}/></button></div>
     <div className="member-tabs"><button className={mode==='login'?'active':''} onClick={()=>setMode('login')}>登入</button><button className={mode==='register'?'active':''} onClick={()=>setMode('register')}>註冊</button></div>
     <form className="member-form" onSubmit={submit}>
       {mode==='register'&&<label>會員稱呼<input required maxLength={40} value={displayName} onChange={e=>setDisplayName(e.target.value)} placeholder="請輸入稱呼"/></label>}
