@@ -91,3 +91,14 @@
 .member-fieldset{border:0;margin:0;padding:0;min-width:0;display:grid;gap:13px}
 .member-dialog[aria-busy="true"] .member-tabs,.member-dialog[aria-busy="true"] .icon-button,.member-fieldset:disabled input{opacity:.6;cursor:not-allowed}
 .member-dialog[aria-busy="true"] .member-tabs button{cursor:not-allowed}
+
+
+/* Prevent iOS Safari from auto-zooming when mobile form controls receive focus. */
+@media(max-width:760px){
+  .member-form input,
+  .checkout-form input:not([type=radio]),
+  .promo-row input,
+  .sort-select select{
+    font-size:16px;
+  }
+}
