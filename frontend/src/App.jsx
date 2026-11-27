@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Search, ShoppingBag, X, Plus, Minus, ArrowUpRight, Heart, Sun, Moon, SlidersHorizontal, Package, ShieldCheck, Sparkles, Check, Trash2, Tag, Truck, Star } from 'lucide-react';
+import { Search, ShoppingBag, X, Plus, Minus, ArrowUpRight, Heart, SlidersHorizontal, Package, ShieldCheck, Check, Trash2, Tag, Truck, Star } from 'lucide-react';
 import { categories } from './data/products.js';
 import { callApi } from './services/api.js';
 
@@ -151,7 +151,7 @@ export default function App(){
   const commerceSaveQueue=useRef(Promise.resolve());
   const memberSubmittingRef=useRef(false);
   const [wishlist,setWishlist]=useState(readGuestWishlist);
-  const [dark,setDark]=useState(()=>localStorage.getItem('peach-girl-theme')==='dark'),[toast,setToast]=useState(''),[promoApplied,setPromoApplied]=useState(false),[checkoutOpen,setCheckoutOpen]=useState(false),[checkoutTotal,setCheckoutTotal]=useState(0);
+  const [toast,setToast]=useState(''),[promoApplied,setPromoApplied]=useState(false),[checkoutOpen,setCheckoutOpen]=useState(false),[checkoutTotal,setCheckoutTotal]=useState(0);
   useEffect(()=>{
     let cancelled=false;
     if(!memberToken){setMember(null);setCommerceReady(true);return()=>{cancelled=true};}
@@ -193,7 +193,7 @@ export default function App(){
     return()=>{cancelled=true};
   },[memberToken,productsLoading]);
   useEffect(()=>{callApi('getProducts').then(items=>{if(Array.isArray(items)){setProducts(items);setProductsError('');}else{setProductsError('商品 API 回傳格式不正確，請檢查後端回應。');}}).catch(error=>{setProducts([]);setProductsError(error?.message||'商品載入失敗，請稍後再試。');}).finally(()=>setProductsLoading(false));},[]);
-  useEffect(()=>{document.documentElement.classList.toggle('dark',dark);localStorage.setItem('peach-girl-theme',dark?'dark':'light')},[dark]);
+  useEffect(()=>{document.documentElement.classList.remove('dark');localStorage.removeItem('peach-girl-theme')},[]);
   useEffect(()=>{
     if(memberToken)return;
     localStorage.setItem('peach-girl-guest-cart',JSON.stringify(cart));
@@ -230,13 +230,11 @@ export default function App(){
   const startCheckout=()=>{setCheckoutTotal(total);setCartOpen(false);setCheckoutOpen(true)};
   return <div className="app-shell" id="top">
     <div className="ambient ambient-one"/><div className="ambient ambient-two"/><div className="ambient ambient-three"/>
-    <div className="announcement"><Sparkles size={13}/> 把喜歡的日常，慢慢串成喜歡的樣子。</div>
     <header className="site-header">
       <a className="wordmark" href="#top" onClick={resetFilters}><span className="brand-mark">p.</span><span>PEACH GIRL<small>HANDMADE SELECT SHOP</small></span></a>
       <nav className={'main-nav '+(catalogVisible?'category-visible':'category-hidden')} aria-hidden={!catalogVisible}>{categories.map(c=><button key={c.id} className={category===c.id&&!onlyWishlist?'nav-active':''} onClick={()=>{setCategory(c.id);setOnlyWishlist(false)}}>{c.label}</button>)}</nav>
       <div className="header-actions"><label className="header-search"><Search size={16}/><input placeholder="搜尋手作選物..." value={search} onChange={e=>setSearch(e.target.value)}/>{search&&<button onClick={()=>setSearch('')} aria-label="清除搜尋"><X size={13}/></button>}</label>
         {member?<button className="member-entry signed-in" disabled={!commerceReady} onClick={logoutMember} title="點擊登出">{member.displayName}<span className="logout-label"> · 登出</span></button>:<button className="member-entry" onClick={()=>{setMemberError('');setMemberOpen(true)}}>會員登入</button>}
-        <button className="icon-button theme-button" onClick={()=>setDark(v=>!v)} aria-label="切換深淺色">{dark?<Sun size={18}/>:<Moon size={18}/>}</button>
         <button className="icon-button" onClick={()=>{setOnlyWishlist(v=>!v);document.getElementById('catalog')?.scrollIntoView({behavior:'smooth'})}} aria-label="我的收藏"><Heart size={18}/></button>
         <button className="bag-button" onClick={()=>setCartOpen(true)}><ShoppingBag size={17}/><span>購物袋</span><b>{count}</b></button></div>
       <nav className={'mobile-category-nav '+(catalogVisible?'category-visible':'category-hidden')} aria-hidden={!catalogVisible}>{categories.map(c=><button key={c.id} className={category===c.id&&!onlyWishlist?'active':''} onClick={()=>{setCategory(c.id);setOnlyWishlist(false)}}>{c.label}</button>)}</nav>
