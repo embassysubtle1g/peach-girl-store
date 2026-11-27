@@ -53,6 +53,14 @@
   </script>
 
   <style>
+    /* Safari / iOS：讓關閉按鈕在觸控按下時立即回應 */
+    .instant-close {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
     body {
       background-color: #FAF8F5;
       color: #2C2A29;
@@ -519,14 +527,14 @@
   <!-- ===================================================================== -->
   <div id="productModal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-6">
     <!-- 背景遮罩 -->
-    <div onclick="closeProductModal()" class="fixed inset-0 bg-charcoal/50 backdrop-blur-xs transition-opacity"></div>
+    <div onclick="closeProductModal()" class="fixed inset-0 bg-charcoal/50"></div>
     
     <!-- 彈窗主體 -->
     <div class="relative bg-cream-50 w-full max-w-4xl max-h-[92vh] rounded-3xl shadow-2xl border border-cream-300 overflow-hidden flex flex-col z-10 animate-[fadeIn_0.2s_ease-out]">
       <!-- 頂部關閉列 -->
       <div class="flex items-center justify-between px-5 py-3.5 bg-white border-b border-cream-200">
         <span id="modalCategoryTag" class="text-xs font-medium text-champagne-dark tracking-wider">手工成品手機鍊</span>
-        <button onclick="closeProductModal()" class="w-8 h-8 rounded-full hover:bg-cream-200 flex items-center justify-center text-charcoal transition">
+        <button type="button" onpointerdown="closeProductModal()" class="instant-close w-8 h-8 rounded-full hover:bg-cream-200 flex items-center justify-center text-charcoal transition">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
@@ -649,7 +657,7 @@
   <!-- 抽屜 1：蝦皮式購物車抽屜 (Cart Drawer) -->
   <!-- ===================================================================== -->
   <div id="cartDrawer" class="fixed inset-0 z-50 hidden">
-    <div onclick="toggleDrawer('cartDrawer', false)" class="fixed inset-0 bg-charcoal/45 backdrop-blur-xs transition-opacity"></div>
+    <div onclick="toggleDrawer('cartDrawer', false)" class="fixed inset-0 bg-charcoal/45"></div>
     
     <div class="fixed right-0 top-0 bottom-0 w-full max-w-md bg-cream-50 shadow-2xl flex flex-col z-10 border-l border-cream-300">
       <!-- 抽屜頂部 -->
@@ -659,7 +667,7 @@
           <h3 class="font-serif text-lg font-bold text-charcoal">我的購物袋</h3>
           <span id="drawerCartCount" class="text-xs bg-cream-200 text-charcoal px-2 py-0.5 rounded-full font-medium">0 件</span>
         </div>
-        <button onclick="toggleDrawer('cartDrawer', false)" class="w-8 h-8 rounded-full hover:bg-cream-200 flex items-center justify-center text-charcoal transition">
+        <button type="button" onpointerdown="toggleDrawer('cartDrawer', false)" class="instant-close w-8 h-8 rounded-full hover:bg-cream-200 flex items-center justify-center text-charcoal transition">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
@@ -739,14 +747,14 @@
   <!-- 抽屜 2：我的收藏清單抽屜 (Wishlist Drawer) -->
   <!-- ===================================================================== -->
   <div id="wishlistDrawer" class="fixed inset-0 z-50 hidden">
-    <div onclick="toggleDrawer('wishlistDrawer', false)" class="fixed inset-0 bg-charcoal/45 backdrop-blur-xs"></div>
+    <div onclick="toggleDrawer('wishlistDrawer', false)" class="fixed inset-0 bg-charcoal/45"></div>
     <div class="fixed right-0 top-0 bottom-0 w-full max-w-md bg-cream-50 shadow-2xl flex flex-col z-10 border-l border-cream-300">
       <div class="px-5 py-4 bg-white border-b border-cream-200 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <i class="fa-solid fa-heart text-dustyrose-dark"></i>
           <h3 class="font-serif text-lg font-bold text-charcoal">我的心願收藏</h3>
         </div>
-        <button onclick="toggleDrawer('wishlistDrawer', false)" class="w-8 h-8 rounded-full hover:bg-cream-200 flex items-center justify-center text-charcoal transition">
+        <button type="button" onpointerdown="toggleDrawer('wishlistDrawer', false)" class="instant-close w-8 h-8 rounded-full hover:bg-cream-200 flex items-center justify-center text-charcoal transition">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
@@ -760,7 +768,7 @@
   <!-- 彈窗 2：超商取貨與結帳模擬彈窗 (Checkout Modal) -->
   <!-- ===================================================================== -->
   <div id="checkoutModal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-6">
-    <div onclick="closeCheckoutModal()" class="fixed inset-0 bg-charcoal/55 backdrop-blur-xs"></div>
+    <div onclick="closeCheckoutModal()" class="fixed inset-0 bg-charcoal/55"></div>
     
     <div class="relative bg-cream-50 w-full max-w-2xl max-h-[92vh] rounded-3xl shadow-2xl border border-cream-300 overflow-hidden flex flex-col z-10">
       <!-- 頂部 -->
@@ -769,7 +777,7 @@
           <h3 class="font-serif text-lg font-bold text-charcoal">填寫配送與結帳資訊</h3>
           <p class="text-[11px] text-charcoal-muted">CHARM & CO. 安心加密結帳</p>
         </div>
-        <button onclick="closeCheckoutModal()" class="w-8 h-8 rounded-full hover:bg-cream-200 flex items-center justify-center text-charcoal">
+        <button type="button" onpointerdown="closeCheckoutModal()" class="instant-close w-8 h-8 rounded-full hover:bg-cream-200 flex items-center justify-center text-charcoal">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
