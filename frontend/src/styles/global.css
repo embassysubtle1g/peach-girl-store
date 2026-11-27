@@ -93,5 +93,7 @@
 }
 
 
-/* Keep the signed-in header action compact on narrow screens. */
-@media(max-width:760px){.logout-label{display:none}}
+
+
+/* Keep member actions concise on mobile while retaining full labels on desktop. */
+@media(max-width:760px){.desktop-only-label{display:none}}
