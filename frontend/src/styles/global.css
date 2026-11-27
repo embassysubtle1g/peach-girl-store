@@ -102,3 +102,7 @@
     font-size:16px;
   }
 }
+
+
+/* Keep the signed-in header action compact on narrow screens. */
+@media(max-width:760px){.logout-label{display:none}}
